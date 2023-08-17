@@ -6,13 +6,13 @@ EXPOSE 80
 EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
-WORKDIR /src
+WORKDIR /
 COPY ["Server/DominosCutScreen.Server.csproj", "Server/"]
 COPY ["Client/DominosCutScreen.Client.csproj", "Client/"]
 COPY ["Shared/DominosCutScreen.Shared.csproj", "Shared/"]
 RUN dotnet restore "Server/DominosCutScreen.Server.csproj"
 COPY . .
-WORKDIR "/src/Server"
+WORKDIR "/Server"
 RUN dotnet build "DominosCutScreen.Server.csproj" -c Release -o /app/build
 
 FROM build AS publish
