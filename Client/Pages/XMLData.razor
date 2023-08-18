@@ -1,0 +1,107 @@
+﻿@page "/xmldata"
+@using DominosCutScreen.Shared
+@using System.Xml.Serialization;
+@using System.Text.Json;
+@using System.Text.Json.Serialization;
+@implements IDisposable
+@inject HttpClient Http
+
+<PageTitle>XML Data</PageTitle>
+
+<div>@Content</div>
+
+@if (BumpHistory.Count == 0)
+{
+    @if (string.IsNullOrWhiteSpace(Content))
+    {
+        <div><p>Attempting to load bump history</p></div>
+    }
+    else
+    {
+        <div><p>There is no bump history yet</p></div>
+    }
+}
+else
+{
+    @foreach (var history in BumpHistory)
+    {
+        <div>
+            <ul>
+                <li>@history.Description</li>
+                <ul>
+                @foreach (var mod in history.ToppingModifications)
+                {
+                    <li>@mod.ToppingAmountDescription @mod.ToppingDescription</li>
+                }
+                </ul>
+            </ul>
+        </div>
+    }
+}
+
+@code {
+    private string Content = string.Empty;
+    private System.Threading.Timer FetchTimer;
+    private List<MakeLineOrderItemHistory> BumpHistory = new List<MakeLineOrderItemHistory>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        bool bSuccess = await GetData();
+        if (!bSuccess)
+            return;
+
+        FetchTimer = new Timer(async _ => {
+            await GetData();
+            await InvokeAsync(StateHasChanged);
+        }, null, 0, 5000);
+    }
+
+    protected async Task<bool> GetData()
+    {
+        HttpResponseMessage? data;
+        Console.WriteLine("Attempting to fetch data from local makeline server");
+        try
+        {
+            data = await Http.GetAsync("http://10.104.37.32:59108/makelines/2/orderHistory");
+            if (!data.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"\tFailed: {data.ReasonPhrase}");
+                Content = $"Unable to connect: {data.ReasonPhrase}";
+                return false;
+            }
+        }
+        catch (HttpRequestException e)
+        {
+            Console.WriteLine($"\tFailed: {e.Message}");
+            return false;
+        }
+
+        Console.WriteLine($"\tConnected: {data.StatusCode}");
+
+        XmlSerializer serializer = new XmlSerializer(typeof(ArrayOfMakeLineOrderItemHistory));
+        using (var reader = new StringReader(await data.Content.ReadAsStringAsync()))
+        {
+            var rootObject = serializer.Deserialize(reader) as ArrayOfMakeLineOrderItemHistory;
+            if (rootObject is null)
+            {
+                Console.WriteLine("\tFailed: Invalid XML");
+                Content = "Invalid XML";
+                return false;
+            }
+            else
+            {
+                Console.WriteLine($"\tSuccess. Loaded {rootObject.Items.Count} items");
+                Content = "Successfully loaded bump history";
+                BumpHistory.AddRange(rootObject.Items);
+                BumpHistory = BumpHistory.Distinct().ToList();
+            }
+        }
+
+        return true;
+    }
+
+    public void Dispose()
+    {
+        FetchTimer?.Dispose();
+    }
+}
