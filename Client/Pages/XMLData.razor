@@ -8,6 +8,10 @@
 
 <PageTitle>XML Data</PageTitle>
 
+<input type="text" @bind=Address/>
+<button @onclick=NewFetch>Fetch</button>
+<button @onclick=Clear>Clear</button>
+
 <div>@Content</div>
 
 @if (BumpHistory.Count == 0)
@@ -40,8 +44,9 @@ else
 }
 
 @code {
+    private string Address = "http://10.104.37.32:59108/makelines/2/orderHistory";
     private string Content = string.Empty;
-    private System.Threading.Timer FetchTimer;
+    private System.Timers.Timer FetchTimer = new System.Timers.Timer();
     private List<MakeLineOrderItemHistory> BumpHistory = new List<MakeLineOrderItemHistory>();
 
     protected override async Task OnInitializedAsync()
@@ -50,10 +55,13 @@ else
         if (!bSuccess)
             return;
 
-        FetchTimer = new Timer(async _ => {
+        FetchTimer.AutoReset = true;
+        FetchTimer.Interval = 5000;
+        FetchTimer.Elapsed += async (object? sender, System.Timers.ElapsedEventArgs e) => {
             await GetData();
             await InvokeAsync(StateHasChanged);
-        }, null, 0, 5000);
+        };
+        FetchTimer.Start();
     }
 
     protected async Task<bool> GetData()
@@ -62,7 +70,7 @@ else
         Console.WriteLine("Attempting to fetch data from local makeline server");
         try
         {
-            data = await Http.GetAsync("http://10.104.37.32:59108/makelines/2/orderHistory");
+            data = await Http.GetAsync(Address);
             if (!data.IsSuccessStatusCode)
             {
                 Console.WriteLine($"\tFailed: {data.ReasonPhrase}");
@@ -98,6 +106,21 @@ else
         }
 
         return true;
+    }
+
+    private async void NewFetch()
+    {
+        FetchTimer.Stop();
+        bool bSuccess = await GetData();
+        if (bSuccess)
+        {
+            FetchTimer.Start();
+        }
+    }
+
+    private void Clear()
+    {
+        BumpHistory.Clear();
     }
 
     public void Dispose()
