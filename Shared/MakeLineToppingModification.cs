@@ -38,6 +38,8 @@ namespace DominosCutScreen.Shared
         /// Not sure what this is for. Seems to be some internal enum value
         /// code 45 = qty 0
         /// code 49 = qty 1
+        /// code 50 = qty 2
+        /// code 51 = qty 3
         /// Sometimes this is empty. eg added chilli flakes, added bbq sauce, added vegan cheese
         /// </summary>
         [XmlElement]
@@ -68,8 +70,7 @@ namespace DominosCutScreen.Shared
 
         public bool Equals(MakeLineToppingModification? other)
         {
-            return other is not null &&
-                   DisplaySequence == other.DisplaySequence &&
+            return other != null &&
                    IsHvi == other.IsHvi &&
                    OptionTypeCode == other.OptionTypeCode &&
                    ToppingAmountCode == other.ToppingAmountCode &&
@@ -78,7 +79,7 @@ namespace DominosCutScreen.Shared
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(DisplaySequence, IsHvi, OptionTypeCode, ToppingAmountCode, ToppingCode);
+            return HashCode.Combine(IsHvi, OptionTypeCode, ToppingAmountCode, ToppingCode);
         }
 
         public static bool operator ==(MakeLineToppingModification? left, MakeLineToppingModification? right)
