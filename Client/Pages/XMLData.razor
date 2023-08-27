@@ -3,128 +3,116 @@
 @using System.Xml.Serialization;
 @using System.Text.Json;
 @using System.Text.Json.Serialization;
+@using System.Globalization;
+@using System.Diagnostics.CodeAnalysis;
 @implements IDisposable
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject HttpClient Http
 
 <PageTitle>XML Data</PageTitle>
 
-<input type="text" @bind=Address/>
-<button @onclick=NewFetch>Fetch</button>
-<button @onclick=Clear>Clear</button>
+<div class="my-1">
+    <button @onclick="@(async e => { showAllOrders = true; await InvokeAsync(StateHasChanged); })">Show All Orders</button>
+    <button @onclick="@(async e => { showAllOrders = false; await InvokeAsync(StateHasChanged); })">Trim Orders</button>
+</div>
 
-<div>@Content</div>
+@{
+    var groupedHistory = BumpHistory.GroupBy(h => h.OrderNumber);
+    var joinedData = groupedHistory.Join(Orders, g => g.Key, o => o.OrderNumber, (g, o) => new
+    {
+        Order = o,
+        LastBumpedAt = g.Max(x => x.BumpedAtTime),
+        BumpedItems = g.GroupBySequential(h => new { h.Description, h.ToppingModifications }, h => h, (x, y) => x.Description.Equals(y.Description, StringComparison.InvariantCultureIgnoreCase) && Enumerable.SequenceEqual(x.ToppingModifications, y.ToppingModifications)).Select(group => new
+        {
+            Item = group.FirstOrDefault(),
+            Quantity = group.Count()
+        })
+    });
+    var sortedData = joinedData.OrderBy(item => item.LastBumpedAt);
 
-@if (BumpHistory.Count == 0)
-{
-    @if (string.IsNullOrWhiteSpace(Content))
+    <div class="d-flex flex-row">
+        @foreach (var item in sortedData.Where(x => showAllOrders ? true : (DateTime.Now - x.LastBumpedAt) <= TimeSpan.FromSeconds(OvenTime + GraceTime)))
     {
-        <div><p>Attempting to load bump history</p></div>
-    }
-    else
-    {
-        <div><p>There is no bump history yet</p></div>
-    }
-}
-else
-{
-    @foreach (var history in BumpHistory)
-    {
-        <div>
-            <ul>
-                <li>@history.Description</li>
-                <ul>
-                @foreach (var mod in history.ToppingModifications)
+        <div class="card mx-2" style="width: 18rem;">
+            <div class="card-body">
+                <h5 class="card-title">Order @item.Order.OrderNumber</h5>
+                @foreach (var bumpedItem in item.BumpedItems)
                 {
-                    <li>@mod.ToppingAmountDescription @mod.ToppingDescription</li>
+                    //Console.WriteLine(JsonSerializer.Serialize(bumpedItem));
+                    <p class="card-text m-0">@(bumpedItem.Quantity)x @bumpedItem.Item.Description
+
+                    @foreach (var tm in bumpedItem.Item.ToppingModifications.OrderBy(t => t.DisplaySequence))
+                    {
+                        var color = tm.ToppingAmountCode == 45 ? "danger" : "success";
+
+                        <br />
+                        <span class="d-inline-block text-@color" style="text-indent: 1rem;">@tm.ToppingAmountDescription @tm.ToppingDescription</span>
+                    }
+
+                    </p>
                 }
-                </ul>
-            </ul>
+            </div>
+            <div class="card-footer text-center">
+                <small class="text-muted">@(item.Order.IsElectronic ? "Internet" : CultureInfo.CurrentCulture.TextInfo.ToTitleCase(item.Order.TakenBy.ToLower()))</small>
+            </div>
         </div>
     }
+    </div>
 }
 
 @code {
-    private string Address = "http://10.104.37.32:59108/makelines/2/orderHistory";
-    private string Content = string.Empty;
-    private System.Timers.Timer FetchTimer = new System.Timers.Timer();
-    private List<MakeLineOrderItemHistory> BumpHistory = new List<MakeLineOrderItemHistory>();
+    private DateTime LastMakelineCheck;
+    private System.Timers.Timer FetchTimer = new ();
+    private MakeLineOrderItemHistory[]? BumpHistory;
+    private MakeLineOrder[]? Orders;
+    private bool showAllOrders = false;
+
+    /// <summary>
+    /// How long is the oven time in seconds
+    /// </summary>
+    private const int OvenTime = 300;
+
+    /// <summary>
+    /// How long should orders stay on the screen once they have been bumped for <see cref="OvenTime">
+    /// </summary>
+    private const int GraceTime = 30;
 
     protected override async Task OnInitializedAsync()
     {
-        bool bSuccess = await GetData();
-        if (!bSuccess)
-            return;
+        if (await localStorage.ContainKeyAsync("LastMakelineCheck"))
+        {
+            LastMakelineCheck = await localStorage.GetItemAsync<DateTime>("LastMakelineCheck");
+        }
+        else
+        {
+            // No last check date, set it to today at midnight
+            LastMakelineCheck = DateTime.Now.Date;
+            Console.WriteLine($"Setting LastMakelineCheck to {LastMakelineCheck}");
+        }
 
+        await GetData();
         FetchTimer.AutoReset = true;
         FetchTimer.Interval = 5000;
-        FetchTimer.Elapsed += async (object? sender, System.Timers.ElapsedEventArgs e) => {
+        FetchTimer.Elapsed += async (object? sender, System.Timers.ElapsedEventArgs e) =>
+        {
             await GetData();
             await InvokeAsync(StateHasChanged);
         };
-        FetchTimer.Start();
+        //FetchTimer.Start();
     }
 
-    protected async Task<bool> GetData()
+    protected async Task GetData()
     {
-        HttpResponseMessage? data;
-        Console.WriteLine("Attempting to fetch data from local makeline server");
-        try
-        {
-            data = await Http.GetAsync(Address);
-            if (!data.IsSuccessStatusCode)
-            {
-                Console.WriteLine($"\tFailed: {data.ReasonPhrase}");
-                Content = $"Unable to connect: {data.ReasonPhrase}";
-                return false;
-            }
-        }
-        catch (HttpRequestException e)
-        {
-            Console.WriteLine($"\tFailed: {e.Message}");
-            return false;
-        }
-
-        Console.WriteLine($"\tConnected: {data.StatusCode}");
-
-        XmlSerializer serializer = new XmlSerializer(typeof(ArrayOfMakeLineOrderItemHistory));
-        using (var reader = new StringReader(await data.Content.ReadAsStringAsync()))
-        {
-            var rootObject = serializer.Deserialize(reader) as ArrayOfMakeLineOrderItemHistory;
-            if (rootObject is null)
-            {
-                Console.WriteLine("\tFailed: Invalid XML");
-                Content = "Invalid XML";
-                return false;
-            }
-            else
-            {
-                Console.WriteLine($"\tSuccess. Loaded {rootObject.Items.Count} items");
-                Content = "Successfully loaded bump history";
-                BumpHistory.AddRange(rootObject.Items);
-                BumpHistory = BumpHistory.Distinct().ToList();
-            }
-        }
-
-        return true;
-    }
-
-    private async void NewFetch()
-    {
-        FetchTimer.Stop();
-        bool bSuccess = await GetData();
-        if (bSuccess)
-        {
-            FetchTimer.Start();
-        }
-    }
-
-    private void Clear()
-    {
-        BumpHistory.Clear();
+        BumpHistory = await Http.GetFromJsonAsync<MakeLineOrderItemHistory[]>("api/Makeline/bump");
+        Orders = await Http.GetFromJsonAsync<MakeLineOrder[]>("api/Makeline/orders?Since=" + LastMakelineCheck.ToString("s", System.Globalization.CultureInfo.InvariantCulture));
+        LastMakelineCheck = DateTime.Now;
+        await localStorage.SetItemAsync("LastMakelineCheck", LastMakelineCheck);
     }
 
     public void Dispose()
     {
         FetchTimer?.Dispose();
     }
+
+
 }

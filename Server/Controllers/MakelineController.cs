@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 using System;
 using System.Diagnostics;
+using System.Text;
 using System.Transactions;
 using System.Xml.Serialization;
 
@@ -13,7 +14,47 @@ namespace DominosCutScreen.Server.Controllers
     [ApiController]
     public class MakelineController : ControllerBase
     {
-        const string Address = "http://10.104.37.32:59108/makelines/2/orderHistory";
+        const string Address = "http://10.104.37.32:59108";
+        const int MakelineCode = 2;
+
+        private static T? DeserializeXML<T>(string xml) where T : class
+        {
+            var serializer = new XmlSerializer(typeof(T));
+            using var reader = new StringReader(xml);
+            return serializer.Deserialize(reader) as T;
+        }
+
+        private static async Task<string?> MakeHTTPRequest(string Path)
+        {
+            string fullPath = $"{Address}/makelines/{MakelineCode}/{Path}";
+            try
+            {
+                var client = new HttpClient();
+                var response = await client.GetAsync(fullPath);
+                if (!response.IsSuccessStatusCode)
+                {
+                    // response.ReasonPhrase
+                    return null;
+                }
+
+                return await response.Content.ReadAsStringAsync();
+            }
+            catch (HttpRequestException)
+            {
+                // e.Message
+                return null;
+            }
+        }
+
+        private static async Task<T?> FetchAndDeserialize<T>(string Path) where T : class
+        {
+            var result = await MakeHTTPRequest(Path);
+
+            if (result == null)
+                return default;
+
+            return DeserializeXML<T>(result);
+        }
 
         [HttpGet("httpclient")]
         public async Task<IActionResult> GetHttpClient()
@@ -53,36 +94,28 @@ namespace DominosCutScreen.Server.Controllers
             return new JsonResult(rootObject.Items);
         }
 
-        [HttpGet("curl")]
-        public async Task<IActionResult> GetCurl()
+        [HttpGet("orders")]
+        public async IAsyncEnumerable<MakeLineOrder> GetMakelineData([FromQuery]DateTime Since)
         {
-            // Start the child process.
-            ProcessStartInfo psi = new()
-            {
-                // Redirect the output stream of the child process.
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                FileName = "curl",
-                Arguments = "-X GET " + Address,
-                CreateNoWindow = true
-            };
+            var arrayOfOrder = await FetchAndDeserialize<ArrayOfMakeLineOrder>($"orders/updates/{Since:s}");
 
-            using var p = new Process{ StartInfo = psi };
-            p.Start();
-            // Do not wait for the child process to exit before
-            // reading to the end of its redirected stream.
-            // p.WaitForExit();
-            // Read the output stream first and then wait.
-            string output = p.StandardOutput.ReadToEnd();
-            string error = p.StandardError.ReadToEnd();
-            p.WaitForExit();
+            if (arrayOfOrder == null)
+                yield break;
 
-            return new JsonResult(new
-            {
-                text = output,
-                error = error
-            });
+            foreach (var order in arrayOfOrder.Orders)
+                yield return order;
+        }
+
+        [HttpGet("bump")]
+        public async IAsyncEnumerable<MakeLineOrderItemHistory> GetBumpHistory()
+        {
+            var arrayOfHistory = await FetchAndDeserialize<ArrayOfMakeLineOrderItemHistory>("orderHistory");
+
+            if (arrayOfHistory == null)
+                yield break;
+
+            foreach (var history in arrayOfHistory.Items)
+                yield return history;
         }
     }
 }
