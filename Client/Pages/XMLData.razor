@@ -17,31 +17,34 @@
 </div>
 
 @{
-    var groupedHistory = BumpHistory.GroupBy(h => h.OrderNumber);
-    var joinedData = groupedHistory.Join(Orders, g => g.Key, o => o.OrderNumber, (g, o) => new
-    {
-        Order = o,
-        LastBumpedAt = g.Max(x => x.BumpedAtTime),
-        BumpedItems = g.GroupBySequential(h => new { h.Description, h.ToppingModifications }, h => h, (x, y) => x.Description.Equals(y.Description, StringComparison.InvariantCultureIgnoreCase) && Enumerable.SequenceEqual(x.ToppingModifications, y.ToppingModifications)).Select(group => new
-        {
-            Item = group.FirstOrDefault(),
-            Quantity = group.Count()
-        })
-    });
-    var sortedData = joinedData.OrderBy(item => item.LastBumpedAt);
+    var processedHistory = BumpHistory.GroupBy(h => h.OrderNumber)
+                                    .Select(g => new
+                                    {
+                                        OrderNumber = g.Key,
+                                        LastBumpedAt = g.Max(h => h.BumpedAtTime),
+                                        Items = g.OrderBy(h => h.BumpedAtTime)
+                                            .GroupBySequential(h => new { h.Description, h.ToppingModifications }, h => h, (x, y) => x.Description.Equals(y.Description, StringComparison.InvariantCultureIgnoreCase) && Enumerable.SequenceEqual(x.ToppingModifications, y.ToppingModifications))
+                                            .Select(g => new
+                                            {
+                                                Item = g.First(),
+                                                Quantity = g.Count()
+                                            })
+                                    })
+                                    .OrderByDescending(x => x.LastBumpedAt);
 
     <div class="d-flex flex-row">
-        @foreach (var item in sortedData.Where(x => showAllOrders ? true : (DateTime.Now - x.LastBumpedAt) <= TimeSpan.FromSeconds(OvenTime + GraceTime)))
+    @foreach (var order in processedHistory.Where(x => showAllOrders ? true : (DateTime.Now - x.LastBumpedAt) <= TimeSpan.FromSeconds(OvenTime + GraceTime)))
     {
         <div class="card mx-2" style="width: 18rem;">
             <div class="card-body">
-                <h5 class="card-title">Order @item.Order.OrderNumber</h5>
-                @foreach (var bumpedItem in item.BumpedItems)
+                    <h5 class="card-title">Order @order.OrderNumber | @order.LastBumpedAt.ToString("T")</h5>
+                @foreach (var item in order.Items)
                 {
                     //Console.WriteLine(JsonSerializer.Serialize(bumpedItem));
-                    <p class="card-text m-0">@(bumpedItem.Quantity)x @bumpedItem.Item.Description
+                        <p class="card-text m-0">
+                            @(item.Quantity)x @item.Item.Description
 
-                    @foreach (var tm in bumpedItem.Item.ToppingModifications.OrderBy(t => t.DisplaySequence))
+                    @foreach (var tm in item.Item.ToppingModifications.OrderBy(t => t.DisplaySequence))
                     {
                         var color = tm.ToppingAmountCode == 45 ? "danger" : "success";
 
@@ -53,7 +56,9 @@
                 }
             </div>
             <div class="card-footer text-center">
+            @{/*
                 <small class="text-muted">@(item.Order.IsElectronic ? "Internet" : CultureInfo.CurrentCulture.TextInfo.ToTitleCase(item.Order.TakenBy.ToLower()))</small>
+                */}
             </div>
         </div>
     }
@@ -61,10 +66,8 @@
 }
 
 @code {
-    private DateTime LastMakelineCheck;
     private System.Timers.Timer FetchTimer = new ();
-    private MakeLineOrderItemHistory[]? BumpHistory;
-    private MakeLineOrder[]? Orders;
+    private List<MakeLineOrderItemHistory> BumpHistory = new();
     private bool showAllOrders = false;
 
     /// <summary>
@@ -79,34 +82,28 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (await localStorage.ContainKeyAsync("LastMakelineCheck"))
-        {
-            LastMakelineCheck = await localStorage.GetItemAsync<DateTime>("LastMakelineCheck");
-        }
-        else
-        {
-            // No last check date, set it to today at midnight
-            LastMakelineCheck = DateTime.Now.Date;
-            Console.WriteLine($"Setting LastMakelineCheck to {LastMakelineCheck}");
-        }
-
         await GetData();
+
         FetchTimer.AutoReset = true;
         FetchTimer.Interval = 5000;
         FetchTimer.Elapsed += async (object? sender, System.Timers.ElapsedEventArgs e) =>
         {
             await GetData();
-            await InvokeAsync(StateHasChanged);
         };
-        //FetchTimer.Start();
+        FetchTimer.Start();
     }
 
     protected async Task GetData()
     {
-        BumpHistory = await Http.GetFromJsonAsync<MakeLineOrderItemHistory[]>("api/Makeline/bump");
-        Orders = await Http.GetFromJsonAsync<MakeLineOrder[]>("api/Makeline/orders?Since=" + LastMakelineCheck.ToString("s", System.Globalization.CultureInfo.InvariantCulture));
-        LastMakelineCheck = DateTime.Now;
-        await localStorage.SetItemAsync("LastMakelineCheck", LastMakelineCheck);
+        var newData = await Http.GetFromJsonAsync<IEnumerable<MakeLineOrderItemHistory>>("api/Makeline/bump");
+
+        if (newData == null)
+            return;
+
+        BumpHistory.AddRange(newData);
+        BumpHistory = BumpHistory.Distinct().ToList();
+
+        await InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()
