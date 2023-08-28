@@ -33,15 +33,15 @@ namespace DominosCutScreen.Server.Controllers
                 var response = await client.GetAsync(fullPath);
                 if (!response.IsSuccessStatusCode)
                 {
-                    // response.ReasonPhrase
+                    Console.Error.WriteLine(response.ReasonPhrase);
                     return null;
                 }
 
                 return await response.Content.ReadAsStringAsync();
             }
-            catch (HttpRequestException)
+            catch (HttpRequestException e)
             {
-                // e.Message
+                Console.Error.WriteLine(e.Message);
                 return null;
             }
         }
