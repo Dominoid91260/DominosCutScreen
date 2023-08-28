@@ -19,6 +19,9 @@ namespace DominosCutScreen.Server.Controllers
 
         private static T? DeserializeXML<T>(string xml) where T : class
         {
+            if (xml.Length == 0)
+                return default;
+
             var serializer = new XmlSerializer(typeof(T));
             using var reader = new StringReader(xml);
             return serializer.Deserialize(reader) as T;
