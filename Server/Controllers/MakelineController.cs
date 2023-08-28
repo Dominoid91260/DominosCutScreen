@@ -56,44 +56,6 @@ namespace DominosCutScreen.Server.Controllers
             return DeserializeXML<T>(result);
         }
 
-        [HttpGet("httpclient")]
-        public async Task<IActionResult> GetHttpClient()
-        {
-            HttpResponseMessage response;
-            try
-            {
-                var client = new HttpClient();
-                response = await client.GetAsync(Address);
-                if (!response.IsSuccessStatusCode)
-                {
-                    return new JsonResult(new
-                    {
-                        error = response.ReasonPhrase
-                    });
-                }
-            }
-            catch (HttpRequestException e)
-            {
-                return new JsonResult(new
-                {
-                    error = e.Message
-                });
-            }
-
-            XmlSerializer serializer = new XmlSerializer(typeof(ArrayOfMakeLineOrderItemHistory));
-            using var reader = new StringReader(await response.Content.ReadAsStringAsync());
-            var rootObject = serializer.Deserialize(reader) as ArrayOfMakeLineOrderItemHistory;
-            if (rootObject is null)
-            {
-                return new JsonResult(new
-                {
-                    error = "Invalid XML"
-                });
-            }
-
-            return new JsonResult(rootObject.Items);
-        }
-
         [HttpGet("orders")]
         public async IAsyncEnumerable<MakeLineOrder> GetMakelineData([FromQuery]DateTime Since)
         {
