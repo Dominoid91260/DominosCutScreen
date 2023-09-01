@@ -19,9 +19,18 @@
 
 <div class="d-grid">
     <div class="d-flex flex-row overflow-auto hideScollBar">
-    @foreach (var order in Orders.Where(o => showAllOrders ? true : o.IsBumped && (DateTime.Now - o.Items.Max(i => i.BumpedTimes.Max())) <= TimeSpan.FromSeconds(OvenTime + GraceTime)))
+    @{
+        // Order by max bump time to the order that was bumped first will be first.
+        IEnumerable<MakeLineOrder> orders = Orders.OrderBy(o => o.Items.Max(i => i.BumpedTimes.Max()));
+
+        if (!showAllOrders)
+        {
+            orders = orders.Where(o => o.IsBumped && !CutBumpedOrders.Contains(o.OrderNumber) && (DateTime.Now - o.Items.Max(i => i.BumpedTimes.Max())) <= TimeSpan.FromSeconds(OvenTime + GraceTime));
+        }
+    }
+    @foreach (var order in orders)
     {
-        <Order MakelineOrder=order />
+        <Order MakelineOrder=order OnClicked=OnOrderClicked />
     }
     </div>
 </div>
@@ -30,6 +39,7 @@
     private System.Timers.Timer FetchTimer = new ();
     private List<MakeLineOrder> Orders = new();
     private List<MakeLineOrderItemHistory> BumpHistory = new();
+    private List<int> CutBumpedOrders = new();
     private bool showAllOrders = false;
 
     /// <summary>
@@ -78,5 +88,8 @@
         FetchTimer?.Dispose();
     }
 
-
+    private void OnOrderClicked(MakeLineOrder Order)
+    {
+        CutBumpedOrders.Add(Order.OrderNumber);
+    }
 }

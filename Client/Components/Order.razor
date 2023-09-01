@@ -23,9 +23,14 @@
     <div class="card-footer text-center">
         <small class="text-muted">@(MakelineOrder.IsElectronic ? "Internet" : CultureInfo.CurrentCulture.TextInfo.ToTitleCase(MakelineOrder.TakenBy.ToLower()))</small>
     </div>
+
+    <a class="stretched-link" href="#" @onclick:preventDefault @onclick="@(async e => { await OnClicked.InvokeAsync(MakelineOrder); })"></a>
 </div>
 
 @code {
     [Parameter, EditorRequired]
     public required MakeLineOrder MakelineOrder { get; set; }
+
+    [Parameter]
+    public EventCallback<MakeLineOrder> OnClicked { get; set; }
 }
