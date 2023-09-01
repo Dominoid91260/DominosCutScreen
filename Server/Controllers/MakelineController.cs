@@ -16,7 +16,7 @@ namespace DominosCutScreen.Server.Controllers
     public class MakelineController : ControllerBase
     {
         [HttpGet("orders")]
-        public IEnumerable<MakeLineOrder> GetMakelineData([FromQuery]DateTime Since)
+        public IEnumerable<MakeLineOrder> GetMakelineData()
         {
             var arrayOfOrder = HttpContext.RequestServices.GetServices<IHostedService>().OfType<MakelineService>().First().Orders;
 
