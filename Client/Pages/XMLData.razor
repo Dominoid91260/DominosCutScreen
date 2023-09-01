@@ -100,8 +100,7 @@
         if (newData == null)
             return;
 
-        BumpHistory.AddRange(newData);
-        BumpHistory = BumpHistory.Distinct().ToList();
+        BumpHistory = newData.ToList();
 
         await InvokeAsync(StateHasChanged);
     }
