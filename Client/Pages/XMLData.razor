@@ -30,7 +30,7 @@
                                                 Quantity = g.Count()
                                             })
                                     })
-                                    .OrderByDescending(x => x.LastBumpedAt);
+                                    .OrderBy(x => x.LastBumpedAt);
 
     <div class="d-flex flex-row">
     @foreach (var order in processedHistory.Where(x => showAllOrders ? true : (DateTime.Now - x.LastBumpedAt) <= TimeSpan.FromSeconds(OvenTime + GraceTime)))
