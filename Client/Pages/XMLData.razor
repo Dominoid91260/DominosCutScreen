@@ -1,4 +1,5 @@
 ﻿@page "/xmldata"
+@using DominosCutScreen.Client.Components
 @using DominosCutScreen.Shared
 @using System.Xml.Serialization;
 @using System.Text.Json;
@@ -17,56 +18,17 @@
 </div>
 
 @{
-    var processedHistory = BumpHistory.GroupBy(h => h.OrderNumber)
-                                    .Select(g => new
-                                    {
-                                        OrderNumber = g.Key,
-                                        LastBumpedAt = g.Max(h => h.BumpedAtTime),
-                                        Items = g.OrderBy(h => h.BumpedAtTime)
-                                            .GroupBySequential(h => new { h.Description, h.ToppingModifications }, h => h, (x, y) => x.Description.Equals(y.Description, StringComparison.InvariantCultureIgnoreCase) && Enumerable.SequenceEqual(x.ToppingModifications, y.ToppingModifications))
-                                            .Select(g => new
-                                            {
-                                                Item = g.First(),
-                                                Quantity = g.Count()
-                                            })
-                                    })
-                                    .OrderBy(x => x.LastBumpedAt);
-
-    <div class="d-flex flex-row">
-    @foreach (var order in processedHistory.Where(x => showAllOrders ? true : (DateTime.Now - x.LastBumpedAt) <= TimeSpan.FromSeconds(OvenTime + GraceTime)))
+    <div class="d-flex flex-row overflow-auto hideScollBar">
+    @foreach (var order in Orders.Where(o => showAllOrders ? true : o.IsBumped && (DateTime.Now - o.Items.Max(i => i.BumpedTimes.Max())) <= TimeSpan.FromSeconds(OvenTime + GraceTime)))
     {
-        <div class="card mx-2" style="width: 18rem;">
-            <div class="card-body">
-                    <h5 class="card-title">Order @order.OrderNumber | @order.LastBumpedAt.ToString("T")</h5>
-                @foreach (var item in order.Items)
-                {
-                    //Console.WriteLine(JsonSerializer.Serialize(bumpedItem));
-                        <p class="card-text m-0">
-                            @(item.Quantity)x @item.Item.Description
-
-                    @foreach (var tm in item.Item.ToppingModifications.OrderBy(t => t.DisplaySequence))
-                    {
-                        var color = tm.ToppingAmountCode == 45 ? "danger" : "success";
-
-                        <br />
-                        <span class="d-inline-block text-@color" style="text-indent: 1rem;">@tm.ToppingAmountDescription @tm.ToppingDescription</span>
-                    }
-
-                    </p>
-                }
-            </div>
-            <div class="card-footer text-center">
-            @{/*
-                <small class="text-muted">@(item.Order.IsElectronic ? "Internet" : CultureInfo.CurrentCulture.TextInfo.ToTitleCase(item.Order.TakenBy.ToLower()))</small>
-                */}
-            </div>
-        </div>
+        <Order MakelineOrder=order />
     }
     </div>
 }
 
 @code {
     private System.Timers.Timer FetchTimer = new ();
+    private List<MakeLineOrder> Orders = new();
     private List<MakeLineOrderItemHistory> BumpHistory = new();
     private bool showAllOrders = false;
 
@@ -95,12 +57,18 @@
 
     protected async Task GetData()
     {
-        var newData = await Http.GetFromJsonAsync<IEnumerable<MakeLineOrderItemHistory>>("api/Makeline/bump");
+        var newBumpHistory = await Http.GetFromJsonAsync<IEnumerable<MakeLineOrderItemHistory>>("api/Makeline/bump");
+        if (newBumpHistory != null)
+        {
+            BumpHistory = newBumpHistory.ToList();
+        }
 
-        if (newData == null)
-            return;
-
-        BumpHistory = newData.ToList();
+        var newOrders = await Http.GetFromJsonAsync<IEnumerable<MakeLineOrder>>("api/Makeline/orders");
+        if (newOrders != null)
+        {
+            Orders.AddRange(newOrders);
+            Orders = Orders.Distinct().ToList();
+        }
 
         await InvokeAsync(StateHasChanged);
     }

@@ -1,0 +1,15 @@
+﻿@using DominosCutScreen.Shared
+
+<p class="card-text m-0">@(Item.Quantity)x @Item.Description</p>
+<small class="text-muted">@Item.Instructions</small>
+
+@foreach (var tm in Item.ToppingModifications.OrderBy(t => t.DisplaySequence))
+{
+    var color = tm.ToppingAmountCode == 45 ? "danger" : "success";
+    <p class="m-0 text-@color" style="text-indent: 1rem;">@tm.ToppingAmountDescription @tm.ToppingDescription</p>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public required MakeLineOrderLine Item { get; set; }
+}
