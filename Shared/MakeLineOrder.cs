@@ -2,7 +2,7 @@
 
 namespace DominosCutScreen.Shared
 {
-    public class MakeLineOrder
+    public class MakeLineOrder : IEquatable<MakeLineOrder?>
     {
         /// <summary>
         /// When this order was actually placed.
@@ -170,6 +170,32 @@ namespace DominosCutScreen.Shared
         /// </summary>
         [XmlElement]
         public string TypeCodeDescription { get; set; }
+
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as MakeLineOrder);
+        }
+
+        public bool Equals(MakeLineOrder? other)
+        {
+            return other is not null &&
+                   OrderNumber == other.OrderNumber;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(OrderNumber);
+        }
+
+        public static bool operator ==(MakeLineOrder? left, MakeLineOrder? right)
+        {
+            return EqualityComparer<MakeLineOrder>.Default.Equals(left, right);
+        }
+
+        public static bool operator !=(MakeLineOrder? left, MakeLineOrder? right)
+        {
+            return !(left == right);
+        }
 
         // OrderUnhiddenTime
     }
