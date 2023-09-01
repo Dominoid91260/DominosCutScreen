@@ -38,5 +38,23 @@ namespace DominosCutScreen.Server.Controllers
             foreach (var history in arrayOfHistory)
                 yield return history;
         }
+
+        [HttpGet("silence")]
+        public async Task<IActionResult> SilenceMakeline()
+        {
+            var client = new HttpClient();
+            try
+            {
+                var response = await client.GetAsync($"{MakelineService._address}/makelines/{MakelineService._makelineCode}/silenceAlarm");
+                if (response.IsSuccessStatusCode)
+                    return Ok();
+            }
+            catch (HttpRequestException e)
+            {
+                Console.Error.WriteLine(e.Message);
+            }
+
+            return BadRequest();
+        }
     }
 }

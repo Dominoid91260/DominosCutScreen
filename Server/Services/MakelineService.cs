@@ -8,8 +8,8 @@ namespace DominosCutScreen.Server.Services
 {
     public class MakelineService : BackgroundService
     {
-        private const string _address = "http://10.104.37.32:59108";
-        private const int _makelineCode = 2;
+        public const string _address = "http://10.104.37.32:59108";
+        public const int _makelineCode = 2;
 
         /// <summary>
         /// In minutes, how often should we poll the makeline for order and bump history

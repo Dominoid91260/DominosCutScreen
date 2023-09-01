@@ -15,22 +15,38 @@
 <div class="my-1">
     <button @onclick="@(async e => { showAllOrders = true; await InvokeAsync(StateHasChanged); })">Show All Orders</button>
     <button @onclick="@(async e => { showAllOrders = false; await InvokeAsync(StateHasChanged); })">Trim Orders</button>
+    <button @onclick=@RequestSilenceMakeline>STFU Makeline</button>
 </div>
 
 <div class="d-grid">
     <div class="d-flex flex-row overflow-auto hideScollBar">
     @{
         // Order by max bump time to the order that was bumped first will be first.
-        IEnumerable<MakeLineOrder> orders = Orders.OrderBy(o => o.Items.Max(i => i.BumpedTimes.Max()));
+        IEnumerable<MakeLineOrder> orders = Orders.Where(o => o.IsBumped).OrderBy(o => o.Items.Max(i => i.BumpedTimes.Max()));
+        IEnumerable<MakeLineOrder> ongoing = new List<MakeLineOrder>();
+        IEnumerable<MakeLineOrder> finished = new List<MakeLineOrder>();
 
         if (!showAllOrders)
         {
-            orders = orders.Where(o => o.IsBumped && !CutBumpedOrders.Contains(o.OrderNumber) && (DateTime.Now - o.Items.Max(i => i.BumpedTimes.Max())) <= TimeSpan.FromSeconds(OvenTime + GraceTime));
+            ongoing = orders.Where(o => !CutBumpedOrders.Contains(o.OrderNumber) && (DateTime.Now - o.Items.Max(i => i.BumpedTimes.Max())) <= TimeSpan.FromSeconds(OvenTime + GraceTime));
+            finished = orders.Where(o => CutBumpedOrders.Contains(o.OrderNumber) || (DateTime.Now - o.Items.Max(i => i.BumpedTimes.Max())) > TimeSpan.FromSeconds(OvenTime + GraceTime)).Reverse();
+        }
+        else
+        {
+            // Repurpose `ongoing` here so we dont need to wrap it all in an if statement
+            ongoing = orders.Reverse();
         }
     }
-    @foreach (var order in orders)
+    @foreach (var order in ongoing)
     {
         <Order MakelineOrder=order OnClicked=OnOrderClicked />
+    }
+    </div>
+
+    <div class="d-flex flex-row overflow-auto hideScollBar mt-4">
+    @foreach (var order in finished)
+    {
+        <Order MakelineOrder=order />
     }
     </div>
 </div>
@@ -91,5 +107,10 @@
     private void OnOrderClicked(MakeLineOrder Order)
     {
         CutBumpedOrders.Add(Order.OrderNumber);
+    }
+
+    private async Task RequestSilenceMakeline()
+    {
+        await Http.GetAsync("api/Makeline/silence");
     }
 }
