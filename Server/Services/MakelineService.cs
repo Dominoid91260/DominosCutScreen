@@ -11,11 +11,19 @@ namespace DominosCutScreen.Server.Services
         private const string _address = "http://10.104.37.32:59108";
         private const int _makelineCode = 2;
 
+        /// <summary>
+        /// In minutes, how often should we poll the makeline for order and bump history
+        /// The makeline only keeps full bumped order history for a few minutes (i think about 5)
+        /// </summary>
+        private const int _makelinePollInterval = 4;
+
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly object _lock = new();
+        private DateTime _lastMakelineCheck;
 
         public IEnumerable<MakeLineOrder> Orders { get; private set; }
         public IEnumerable<MakeLineOrderItemHistory> BumpHistory { get; private set; }
+
         private static T? DeserializeXML<T>(string xml) where T : class
         {
             if (xml.Length == 0)
@@ -60,6 +68,7 @@ namespace DominosCutScreen.Server.Services
             _httpClientFactory = httpClientFactory;
             Orders = new List<MakeLineOrder>();
             BumpHistory = new List<MakeLineOrderItemHistory>();
+            _lastMakelineCheck = DateTime.Now.Date; // Make it midnight so we get as much info as possible
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -82,7 +91,8 @@ namespace DominosCutScreen.Server.Services
                 }
 
                 // Orders
-                var orders = await FetchAndDeserialize<ArrayOfMakeLineOrder>(client, "orders");
+                var orders = await FetchAndDeserialize<ArrayOfMakeLineOrder>(client, $"orders/updates/{_lastMakelineCheck:s}");
+                _lastMakelineCheck = DateTime.Now;
                 if (orders != null)
                 {
                     lock (_lock)
@@ -91,7 +101,7 @@ namespace DominosCutScreen.Server.Services
                     }
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
+                await Task.Delay(TimeSpan.FromMinutes(_makelinePollInterval), stoppingToken);
             }
         }
     }
