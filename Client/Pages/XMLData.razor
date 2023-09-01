@@ -17,14 +17,14 @@
     <button @onclick="@(async e => { showAllOrders = false; await InvokeAsync(StateHasChanged); })">Trim Orders</button>
 </div>
 
-@{
+<div class="d-grid">
     <div class="d-flex flex-row overflow-auto hideScollBar">
     @foreach (var order in Orders.Where(o => showAllOrders ? true : o.IsBumped && (DateTime.Now - o.Items.Max(i => i.BumpedTimes.Max())) <= TimeSpan.FromSeconds(OvenTime + GraceTime)))
     {
         <Order MakelineOrder=order />
     }
     </div>
-}
+</div>
 
 @code {
     private System.Timers.Timer FetchTimer = new ();
