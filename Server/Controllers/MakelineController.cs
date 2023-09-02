@@ -48,6 +48,8 @@ namespace DominosCutScreen.Server.Controllers
                 var response = await client.PostAsync($"{MakelineService._address}/makelines/{MakelineService._makelineCode}/silenceAlarm", null);
                 if (response.IsSuccessStatusCode)
                     return Ok();
+
+                Console.Error.WriteLine($"MakelineControler.SilenceMakeline failed: {response.ReasonPhrase}");
             }
             catch (HttpRequestException e)
             {
