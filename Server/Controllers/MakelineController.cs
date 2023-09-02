@@ -45,7 +45,7 @@ namespace DominosCutScreen.Server.Controllers
             var client = new HttpClient();
             try
             {
-                var response = await client.GetAsync($"{MakelineService._address}/makelines/{MakelineService._makelineCode}/silenceAlarm");
+                var response = await client.PostAsync($"{MakelineService._address}/makelines/{MakelineService._makelineCode}/silenceAlarm", null);
                 if (response.IsSuccessStatusCode)
                     return Ok();
             }
