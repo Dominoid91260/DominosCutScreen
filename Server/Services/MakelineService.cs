@@ -31,7 +31,16 @@ namespace DominosCutScreen.Server.Services
 
             var serializer = new XmlSerializer(typeof(T));
             using var reader = new StringReader(xml);
-            return serializer.Deserialize(reader) as T;
+
+            try
+            {
+                return serializer.Deserialize(reader) as T;
+            }
+            catch (InvalidOperationException e)
+            {
+                Console.Error.WriteLine($"MakelineService.DeserializeXML failed: {e.Message}");
+                return null;
+            }
         }
         private static async Task<string?> MakeHTTPRequest(HttpClient Client, string Path)
         {
