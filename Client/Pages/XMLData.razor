@@ -92,8 +92,7 @@
         var newOrders = await Http.GetFromJsonAsync<IEnumerable<MakeLineOrder>>("api/Makeline/orders");
         if (newOrders != null)
         {
-            Orders.AddRange(newOrders);
-            Orders = Orders.Distinct().ToList();
+            Orders = newOrders.ToList();
         }
 
         await InvokeAsync(StateHasChanged);
