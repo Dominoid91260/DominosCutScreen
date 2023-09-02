@@ -49,11 +49,11 @@ namespace DominosCutScreen.Server.Controllers
                 if (response.IsSuccessStatusCode)
                     return Ok();
 
-                Console.Error.WriteLine($"MakelineControler.SilenceMakeline failed: {response.ReasonPhrase}");
+                Console.Error.WriteLine($"MakelineController.SilenceMakeline failed: {response.ReasonPhrase}");
             }
             catch (HttpRequestException e)
             {
-                Console.Error.WriteLine(e.Message);
+                Console.Error.WriteLine($"MakelineController.SilenceMakeline failed: {e.Message}");
             }
 
             return BadRequest();
