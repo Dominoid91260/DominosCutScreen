@@ -9,6 +9,7 @@
 @implements IDisposable
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject HttpClient Http
+@inject IJSRuntime JS
 
 <PageTitle>XML Data</PageTitle>
 
@@ -20,7 +21,7 @@
 
 <div class="d-grid">
     <h4>Live Orders</h4>
-    <div class="d-flex flex-row overflow-auto hideScollBar mb-4">
+    <div id="liveOrders" class="d-flex flex-row overflow-auto hideScollBar mb-4">
     @{
         // Order by max bump time to the order that was bumped first will be first.
         IEnumerable<MakeLineOrder> orders = Orders.Where(o => o.IsBumped).OrderBy(o => o.Items.Max(i => i.BumpedTimes.Max()));
@@ -45,7 +46,7 @@
     </div>
 
     <h4>Previous Orders</h4>
-    <div class="d-flex flex-row overflow-auto hideScollBar">
+    <div id="previousOrders" class="d-flex flex-row overflow-auto hideScollBar">
     @foreach (var order in finished)
     {
         <Order MakelineOrder=order />
@@ -81,6 +82,8 @@
             await GetData();
         };
         FetchTimer.Start();
+
+        await JS.InvokeVoidAsync("SetAllOrderCardProgress");
     }
 
     protected async Task GetData()

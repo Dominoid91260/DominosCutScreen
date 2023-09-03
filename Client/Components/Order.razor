@@ -3,7 +3,13 @@
 
 <div class="card mx-2" style="flex: 0 0 18rem;">
     <div class="card-body">
-        <h5 class="card-title">Order @MakelineOrder.OrderNumber | @MakelineOrder.Items.Max(i => i.BumpedTimes.Max()).ToString("T")</h5>
+        @{
+            var lastBumpTime = @MakelineOrder.Items.Max(i => i.BumpedTimes.Max());
+        }
+        <div class="progress">
+            <div class="progress-bar" data-time="@(lastBumpTime.ToString("s"))"></div>
+        </div>
+        <h5 class="card-title">Order @MakelineOrder.OrderNumber | @lastBumpTime.ToString("T")</h5>
         @{
             var items = MakelineOrder.Items;
             var groupedSeq = items.GroupBySequential(i => new { i.Description, i.ToppingModifications }, i => i, (x, y) => x.Description.Equals(y.Description, StringComparison.InvariantCultureIgnoreCase) && Enumerable.SequenceEqual(x.ToppingModifications, y.ToppingModifications));

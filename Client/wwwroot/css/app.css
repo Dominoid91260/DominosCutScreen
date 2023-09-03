@@ -108,3 +108,26 @@ a, .btn-link {
     .hideScollBar::-webkit-scrollbar {
         width: 0 !important
     }
+
+@keyframes order-progress
+{
+    0% {
+        width: 100%;
+    }
+
+    100% {
+        width: 0%;
+    }
+}
+
+#liveOrders .card .progress-bar
+{
+    animation-play-state: paused;
+    animation-name: order-progress;
+    animation-duration: 390s;
+}
+
+#previousOrders .card .progress
+{
+    display: none;
+}
