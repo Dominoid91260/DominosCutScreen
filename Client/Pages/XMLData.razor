@@ -21,7 +21,7 @@
 
 <div class="d-grid">
     <h4>Live Orders</h4>
-    <div id="liveOrders" class="d-flex flex-row overflow-auto hideScollBar mb-4">
+    <div id="liveOrders" class="d-flex flex-row overflow-auto thinScollBar mb-4">
     @{
         // Order by max bump time to the order that was bumped first will be first.
         IEnumerable<MakeLineOrder> orders = Orders.Where(o => o.IsBumped).OrderBy(o => o.Items.Max(i => i.BumpedTimes.Max()));
@@ -46,7 +46,7 @@
     </div>
 
     <h4>Previous Orders</h4>
-    <div id="previousOrders" class="d-flex flex-row overflow-auto hideScollBar">
+    <div id="previousOrders" class="d-flex flex-row overflow-auto thinScollBar">
     @foreach (var order in finished)
     {
         <Order MakelineOrder=order />

@@ -101,13 +101,9 @@ a, .btn-link {
     }
 
 /* https://blog.logrocket.com/hide-scrollbar-without-impacting-scrolling-css/ */
-.hideScollBar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+.thinScollBar {
+    scrollbar-width: thin;
 }
-    .hideScollBar::-webkit-scrollbar {
-        width: 0 !important
-    }
 
 @keyframes order-progress
 {
