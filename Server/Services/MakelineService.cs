@@ -50,7 +50,7 @@ namespace DominosCutScreen.Server.Services
                 var response = await Client.GetAsync(fullPath);
                 if (!response.IsSuccessStatusCode)
                 {
-                    Console.Error.WriteLine(response.ReasonPhrase);
+                    Console.Error.WriteLine($"MakelineService.MakeHTTPRequest failed: {fullPath} | {response.ReasonPhrase}");
                     return null;
                 }
 
@@ -58,10 +58,11 @@ namespace DominosCutScreen.Server.Services
             }
             catch (HttpRequestException e)
             {
-                Console.Error.WriteLine(e.Message);
+                Console.Error.WriteLine($"MakelineService.MakeHTTPRequest failed: {fullPath} | {e.Message}");
                 return null;
             }
         }
+
         private static async Task<T?> FetchAndDeserialize<T>(HttpClient Client, string Path) where T : class
         {
             var result = await MakeHTTPRequest(Client, Path);
