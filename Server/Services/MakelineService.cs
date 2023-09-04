@@ -96,6 +96,12 @@ namespace DominosCutScreen.Server.Services
                 {
                     lock (_lock)
                     {
+                        // Only run this on new items we arent tracking yet since this would have already been run on those.
+                        foreach (var item in bumpHistory.Items.Where(i => !BumpHistory.Contains(i)))
+                        {
+                            item.OnDeserializedMethod();
+                        }
+
                         BumpHistory = bumpHistory.Items;
                     }
                 }
@@ -107,6 +113,12 @@ namespace DominosCutScreen.Server.Services
                 {
                     lock (_lock)
                     {
+                        // Only run this on new orders we arent tracking yet since this would have already been run on those.
+                        foreach (var item in orders.Orders.Where(o => !Orders.Contains(o)).SelectMany(o => o.Items))
+                        {
+                            item.OnDeserializedMethod();
+                        }
+
                         Orders = Orders.Concat(orders.Orders).GroupBy(o => o.OrderNumber).Select(g => g.Last());
                     }
                 }

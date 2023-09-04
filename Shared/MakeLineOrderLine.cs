@@ -2,21 +2,8 @@
 
 namespace DominosCutScreen.Shared
 {
-    public class MakeLineOrderLine
+    public class MakeLineOrderLine : CommonMakelineItem
     {
-        /// <summary>
-        /// When each item was bumped
-        /// Number of entries is equal to `Quantity` - `ToBeMadeQuantity`
-        /// </summary>
-        [XmlArray, XmlArrayItem("dateTime")]
-        public List<DateTime>BumpedTimes { get; set; }
-
-        /// <summary>
-        /// Name of the pizza or side.
-        /// For pizzas, this will show up as `L CLASS Surpreme` or `L XL Classic Supreme` etc
-        /// </summary>
-        [XmlElement]
-        public string Description { get; set; }
 
         /// <summary>
         /// Cooking instructions. Also contains cash amount and phone number if its the first item in the order
@@ -55,14 +42,6 @@ namespace DominosCutScreen.Shared
         public int LineNumber { get; set; }
 
         /// <summary>
-        /// No idea what this is for.
-        /// Always seems to be 0
-        /// </summary>
-        /// @TODO confirm
-        [XmlElement]
-        public int LinePart { get; set; }
-
-        /// <summary>
         /// No idea what this is for
         /// </summary>
         /// @TODO confirm
@@ -70,7 +49,7 @@ namespace DominosCutScreen.Shared
         public bool IsPairedProduct { get; set; }
 
         /// <summary>
-        /// Item category (Pizza, Bread, Extras, Potato, Wings)
+        /// Item category (Pizza, Bread, Extras, Potato, Wings, MDB)
         /// Seems to be the category thats printed on the bottom of the receipt
         /// </summary>
         [XmlElement]
@@ -118,9 +97,6 @@ namespace DominosCutScreen.Shared
         [XmlElement]
         public string ToppingDescriptions { get; set; }
 
-        [XmlArray, XmlArrayItem("MakeLineToppingModificationContract")]
-        public List<MakeLineToppingModification> ToppingModifications { get; set; }
-
         // ToppingPortionDescriptions
 
         /// <summary>
@@ -130,5 +106,25 @@ namespace DominosCutScreen.Shared
         public int TotalWeight { get; set; }
 
         // ToppingModifiedPizzaPartCodes
+
+        public void OnDeserializedMethod()
+        {
+            string? crustString = null;
+
+            // Ignore sides, and oddly enough ignore MDB since their `ProductDescription` and `Description` are the same
+            if (ProductCategory == "Pizza")
+            {
+                // For some stupid af reason, the double bacon cheeseburger has 2 different strings in `ProductDescription` and `Description`.
+                //  "DblBcnChsBurg+m" and "Dbl Bcn Chs Burg+M"
+                // My solution for this is the remove all the spaces from both, then remove then remove `ProductDescription` from `Description`.
+                // The main issue with this is that crusts with spaces (e.g. "GLUTEN FREE") fail to get removed correctly in CommonMakelineItem.ParseCrustName.
+                // the workaround is to create an empty pair in MakelineOverrideManager.CrustNameOverrides
+                var desc = string.Concat(Description.Where(c => !char.IsWhiteSpace(c)));
+                string pdesc = string.Concat(ProductDescription.Where(c => !char.IsWhiteSpace(c)));
+                crustString = desc.Replace(pdesc, null, StringComparison.InvariantCultureIgnoreCase);
+            }
+
+            OnDeserialized(crustString);
+        }
     }
 }

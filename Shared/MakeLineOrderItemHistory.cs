@@ -2,21 +2,8 @@
 
 namespace DominosCutScreen.Shared
 {
-    public class MakeLineOrderItemHistory : IEquatable<MakeLineOrderItemHistory?>
+    public class MakeLineOrderItemHistory : CommonMakelineItem, IEquatable<MakeLineOrderItemHistory?>
     {
-        /// <summary>
-        /// What time this item was bumped at
-        /// </summary>
-        [XmlElement]
-        public DateTime BumpedAtTime { get; set; }
-
-        /// <summary>
-        /// Name of the item that was bumped.
-        /// e.g. "BRD Garlic", "L THIN BBQ Meatlovers"
-        /// </summary>
-        [XmlElement]
-        public string Description { get; set; }
-
         /// <summary>
         /// No idea what this is for. Seems to always be 0
         /// </summary>
@@ -34,12 +21,6 @@ namespace DominosCutScreen.Shared
         /// </summary>
         [XmlElement]
         public DateTime OrderEditDate { get; set; }
-
-        /// <summary>
-        /// List of all topping modifications
-        /// </summary>
-        [XmlArray, XmlArrayItem("MakeLineToppingModificationContract")]
-        public List<MakeLineToppingModification> ToppingModifications { get; set; }
 
         /// <summary>
         /// Carry-out or Delivery (C or D)
@@ -79,6 +60,11 @@ namespace DominosCutScreen.Shared
         public static bool operator !=(MakeLineOrderItemHistory? left, MakeLineOrderItemHistory? right)
         {
             return !(left == right);
+        }
+
+        public void OnDeserializedMethod()
+        {
+            OnDeserialized();
         }
     }
 }
