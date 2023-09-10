@@ -118,7 +118,6 @@ a, .btn-link {
 
 #liveOrders .card .progress-bar
 {
-    animation-play-state: paused;
     animation-name: order-progress;
     animation-duration: 390s;
 }
