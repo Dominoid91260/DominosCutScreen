@@ -1,15 +1,16 @@
 ﻿@using DominosCutScreen.Shared
 @using System.Globalization;
 
+@{
+    var bgcolor = MakelineOrder.IsExpedited ? "bg-info" : string.Empty;
+    var delcolor = MakelineOrder.TypeCode == "D" ? "background-color: plum;" : string.Empty;
+}
 <div class="card m-2" style="flex: 0 0 18rem;">
     <div class="card-body">
-        @{
-            var lastBumpTime = @MakelineOrder.Items.Max(i => i.BumpedTimes.Max());
-        }
         <div class="progress">
-            <div class="progress-bar" data-time="@(lastBumpTime.ToString("s"))"></div>
+            <div class="progress-bar" data-time="@(LastBumpTime.ToString("s"))"></div>
         </div>
-        <h5 class="card-title">Order @MakelineOrder.OrderNumber | @lastBumpTime.ToString("T")</h5>
+        <h5 class="card-title">Order @MakelineOrder.OrderNumber | @LastBumpTime.ToString("T")</h5>
         @{
             var items = MakelineOrder.Items;
             var groupedSeq = items.GroupBySequential(i => new { i.Description, i.ToppingModifications }, i => i, (x, y) => x.Description.Equals(y.Description, StringComparison.InvariantCultureIgnoreCase) && Enumerable.SequenceEqual(x.ToppingModifications, y.ToppingModifications));
@@ -26,8 +27,8 @@
             <OrderItem Item=item />
         }
     </div>
-    <div class="card-footer text-center">
-        <small class="text-muted">@(MakelineOrder.IsElectronic ? "Internet" : CultureInfo.CurrentCulture.TextInfo.ToTitleCase(MakelineOrder.TakenBy.ToLower()))</small>
+    <div class="card-footer text-center @bgcolor" style="@delcolor">
+        <small>@FooterText</small>
     </div>
 
     <a class="stretched-link" href="#" @onclick:preventDefault @onclick="@(async e => { await OnClicked.InvokeAsync(MakelineOrder); })"></a>
@@ -39,4 +40,39 @@
 
     [Parameter]
     public EventCallback<MakeLineOrder> OnClicked { get; set; }
+
+    private DateTime LastBumpTime;
+    private string FooterText = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        foreach (var item in MakelineOrder.Items)
+        {
+            if (item.BumpedTimes.Count == 0)
+            {
+                Console.WriteLine($"Item has no bump times: {item.Description} in order {MakelineOrder.OrderNumber}");
+            }
+        }
+
+        LastBumpTime = MakelineOrder.Items.SelectMany(i => i.BumpedTimes).Max();
+
+        if (MakelineOrder.TypeCode == "C")
+        {
+            FooterText = "Pickup";
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(MakelineOrder.Address))
+            {
+                FooterText = "Delivery";
+            }
+            else
+            {
+                FooterText = MakelineOrder.Address;
+            }
+        }
+
+        Console.WriteLine($"Order {MakelineOrder.OrderNumber} | {MakelineOrder.TypeCode} | {FooterText}");
+    }
 }
