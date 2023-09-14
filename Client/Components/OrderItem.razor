@@ -1,7 +1,7 @@
 ﻿@using DominosCutScreen.Shared
 
 <p class="card-text m-0">@(Item.Quantity)x @Item.PizzaBaseName @Item.PrettyItemName</p>
-<small class="text-muted">@Item.Instructions</small>
+<small class="text-uppercase fw-bold">@Item.Instructions</small>
 
 @foreach (var tm in Item.ToppingModifications.OrderBy(t => t.DisplaySequence))
 {
