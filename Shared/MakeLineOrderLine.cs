@@ -4,6 +4,12 @@ namespace DominosCutScreen.Shared
 {
     public class MakeLineOrderLine : CommonMakelineItem
     {
+        /// <summary>
+        /// When each item was bumped
+        /// Number of entries is equal to `Quantity` - `ToBeMadeQuantity`
+        /// </summary>
+        [XmlArray, XmlArrayItem("dateTime")]
+        public List<DateTime> BumpedTimes { get; set; }
 
         /// <summary>
         /// Cooking instructions. Also contains cash amount and phone number if its the first item in the order

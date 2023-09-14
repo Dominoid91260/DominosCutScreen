@@ -4,6 +4,12 @@ namespace DominosCutScreen.Shared
 {
     public class MakeLineOrderItemHistory : CommonMakelineItem, IEquatable<MakeLineOrderItemHistory?>
     {
+        ///<summary>
+        /// What time this item was bumped
+        ///</summary>
+        [XmlElement]
+        public DateTime BumpedAtTime { get; set; }
+
         /// <summary>
         /// No idea what this is for. Seems to always be 0
         /// </summary>

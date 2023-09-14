@@ -11,13 +11,6 @@ namespace DominosCutScreen.Shared
     public class CommonMakelineItem
     {
         /// <summary>
-        /// When each item was bumped
-        /// Number of entries is equal to `Quantity` - `ToBeMadeQuantity`
-        /// </summary>
-        [XmlArray, XmlArrayItem("dateTime")]
-        public List<DateTime> BumpedTimes { get; set; }
-
-        /// <summary>
         /// Name of the pizza or side.
         /// For pizzas, this will show up as `L CLASS Surpreme` or `L XL Classic Supreme` etc
         /// </summary>
