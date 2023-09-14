@@ -15,7 +15,7 @@ namespace DominosCutScreen.Server.Services
         /// In minutes, how often should we poll the makeline for order and bump history
         /// The makeline only keeps full bumped order history for a few minutes (i think about 5)
         /// </summary>
-        private const int _makelinePollInterval = 4;
+        private const int _makelinePollInterval = 10;
 
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly object _lock = new();
@@ -123,7 +123,7 @@ namespace DominosCutScreen.Server.Services
                     }
                 }
 
-                await Task.Delay(TimeSpan.FromMinutes(_makelinePollInterval), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(_makelinePollInterval), stoppingToken);
             }
         }
     }
