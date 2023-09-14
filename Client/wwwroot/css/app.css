@@ -109,6 +109,12 @@ a, .btn-link {
 {
     0% {
         width: 100%;
+        background-color: var(--bs-primary);
+    }
+
+    75% {
+        width: 100%;
+        background-color: var(--bs-warning);
     }
 
     100% {
