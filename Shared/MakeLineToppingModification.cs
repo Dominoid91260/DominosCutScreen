@@ -28,9 +28,11 @@ namespace DominosCutScreen.Shared
         public string OptionTypeCode { get; set; }
 
         /// <summary>
-        /// No idea what this is for. Seems to always be 87
+        /// Which part of the pizza this topping is on
+        /// 87 = whole
+        /// 49 = left
+        /// 50 = right
         /// </summary>
-        /// @TODO confirm
         [XmlElement]
         public int PizzaDistribution { get; set; }
 
