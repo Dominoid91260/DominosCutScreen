@@ -56,7 +56,7 @@ namespace DominosCutScreen.Server.Services
 
                 return await response.Content.ReadAsStringAsync();
             }
-            catch (HttpRequestException e)
+            catch (Exception e) when (e is HttpRequestException || e is TaskCanceledException)
             {
                 Console.Error.WriteLine($"MakelineService.MakeHTTPRequest failed: {fullPath} | {e.Message}");
                 return null;
