@@ -70,24 +70,31 @@ namespace DominosCutScreen.Shared
             if (postBakeIndex == -1)
                 return;
 
+            var hasSpringOnion = PrettyItemName.Contains("*");
+            var postBakeStr = PrettyItemName[postBakeIndex..].Replace("+", null).Replace("*", null);
             PrettyItemName = PrettyItemName[0..postBakeIndex];
-            var postBakeStr = PrettyItemName[postBakeIndex..].Replace("+", null);
             // Reverse the list so that spring onion (which appears first) will be the last added topping modification
-            var postbakes = postBakeStr.Split('+', StringSplitOptions.RemoveEmptyEntries).Reverse();
+            var postbakes = postBakeStr.Split('+', StringSplitOptions.RemoveEmptyEntries).ToList();
+            
+            if (hasSpringOnion)
+            {
+                postbakes.Add("*");
+            }
 
             var count = postbakes.Count();
             for (var i = 0; i < count; ++i)
             {
-                var code = postbakes.ElementAt(i);
+                var code = postbakes.ElementAt(i).ToUpper();
                 var displaySeq = -count + i;
 
-                // Topping code already exists in modifications so ignore this
-                if (ToppingModifications.Any(tm => tm.ToppingCode == code))
-                    continue;
-
-                if (!MakelineOverrideManager.PostBakeOverrides.ContainsKey(code))
+                if (MakelineOverrideManager.PostBakeOverrides.ContainsKey(code))
                 {
                     var data = MakelineOverrideManager.PostBakeOverrides[code];
+
+                    // Topping code already exists in modifications so ignore this
+                    if (ToppingModifications.Any(tm => tm.ToppingCode == data.ToppingCode))
+                        continue;
+
                     ToppingModifications.Add(new MakeLineToppingModification
                     {
                         DisplaySequence = displaySeq,
