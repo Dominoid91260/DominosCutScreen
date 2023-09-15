@@ -10,13 +10,16 @@ namespace DominosCutScreen.Shared
     {
         public static readonly Dictionary<string, MakeLineToppingModification> PostBakeOverrides = new()
         {
-            { "*", new() { ToppingCode = "spo", ToppingDescription = "Spring Onion" } },
-            { "B", new() { ToppingCode = "BUTT", ToppingDescription = "Butter Chicken Sce" } }, // Confirm
-            { "Hb", new() { ToppingCode = "HICBBQ", ToppingDescription = "Hickory BBQ" } },
-            { "Ho", new() { ToppingCode = "HOLLAND", ToppingDescription = "Hollandaise" } },
+            { "*", new() { ToppingCode = "SPO", ToppingDescription = "Spring Onion" } },
+            { "B", new() { ToppingCode = "BtrChk", ToppingDescription = "Butter Chicken Sce" } },
+            { "CS", new() { ToppingCode = "CeSpr", ToppingDescription = "Cheese Sprinkle"} }, // Not a real topping so theres no topping code
+            { "F", new () { ToppingCode = "FRANKS", ToppingDescription = "Franks Hot Sce"} },
+            { "HB", new() { ToppingCode = "HICBBQ", ToppingDescription = "Hickory BBQ" } },
+            { "HO", new() { ToppingCode = "HOLLAND", ToppingDescription = "Hollandaise" } },
             { "M", new() { ToppingCode = "My", ToppingDescription = "Mayonnaise" } },
             { "P", new() { ToppingCode = "PERI", ToppingDescription = "Peri Peri Sce" } },
-            { "T", new() { ToppingCode = "TOMCAP", ToppingDescription = "Tom Caps Sce" } } // Confirm
+            { "PA", new() { ToppingCode = "PARMSC", ToppingDescription = "Garlc Parm Sce" } },
+            { "T", new() { ToppingCode = "TOMCAP", ToppingDescription = "Tom Caps Sce" } }
         };
 
         // This sets a crust/base from a key found in the name of the pizza
