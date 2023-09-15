@@ -121,6 +121,14 @@ namespace DominosCutScreen.Server.Services
                     }
                 }
 
+                // Clear `Orders` and `BumpHistory` every day at 6am
+                // A much better solution would be making a cronjob that just restarts this server every day at 6am though...
+                if (DateTime.Now.Hour >= 6 && BumpHistory.Any(h => h.BumpedAtTime.Day != DateTime.Now.Day))
+                {
+                    Orders = new List<MakeLineOrder>();
+                    BumpHistory = new List<MakeLineOrderItemHistory>();
+                }
+
                 await Task.Delay(TimeSpan.FromSeconds(_makelinePollInterval), stoppingToken);
             }
         }
