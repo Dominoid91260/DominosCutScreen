@@ -14,10 +14,10 @@
         @{
             var items = MakelineOrder.Items;
             var groupedSeq = items.GroupBySequential(i => new { i.Description, i.ToppingModifications }, i => i, (x, y) => x.Description.Equals(y.Description, StringComparison.InvariantCultureIgnoreCase) && Enumerable.SequenceEqual(x.ToppingModifications, y.ToppingModifications));
-            var selected = groupedSeq.Select(x =>
+            var selected = groupedSeq.Select(g =>
             {
-                var item = x.First();
-                item.Quantity = x.Count();
+                var item = g.First();
+                item.Quantity = g.Sum(i => i.Quantity);
                 return item;
             });
             var ordered = selected.OrderBy(i => i.LineNumber);
