@@ -7,8 +7,9 @@
 }
 <div class="card m-2" style="flex: 0 0 18rem;">
     <div class="card-body">
-        <div class="progress">
+        <div class="progress position-relative">
             <div class="progress-bar" data-time="@(LastBumpTime.ToString("s"))"></div>
+            <span class="text-black fw-bold justify-content-center d-flex w-100 position-absolute">@(((LastBumpTime + TimeSpan.FromSeconds(300 + 90)) - DateTime.Now).ToString(@"mm\:ss"))</span>
         </div>
         <h5 class="card-title">Order @MakelineOrder.OrderNumber | @LastBumpTime.ToString("T")</h5>
         @{
