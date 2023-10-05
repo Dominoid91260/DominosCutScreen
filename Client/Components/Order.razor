@@ -3,7 +3,7 @@
 
 @{
     var bgcolor = MakelineOrder.IsExpedited ? "bg-info" : string.Empty;
-    var delcolor = MakelineOrder.TypeCode == "D" ? "background-color: plum;" : string.Empty;
+    var delcolor = (!MakelineOrder.IsExpedited && MakelineOrder.TypeCode == "D") ? "background-color: plum;" : string.Empty;
 }
 <div class="card m-2" style="flex: 0 0 18rem;">
     <div class="card-body">
