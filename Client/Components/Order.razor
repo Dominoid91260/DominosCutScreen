@@ -11,7 +11,7 @@
             <div class="progress-bar" data-time="@(LastBumpTime.ToString("s"))"></div>
             <span class="text-black fw-bold justify-content-center d-flex w-100 position-absolute">@(((LastBumpTime + TimeSpan.FromSeconds(300 + 90)) - DateTime.Now).ToString(@"mm\:ss"))</span>
         </div>
-        <h5 class="card-title">Order @MakelineOrder.OrderNumber | @LastBumpTime.ToString("T")</h5>
+        <h5 class="card-title fw-bold">Order @MakelineOrder.OrderNumber</h5>
         @{
             var items = MakelineOrder.Items;
             var groupedSeq = items.GroupBySequential(i => new { i.Description, i.ToppingModifications }, i => i, (x, y) => x.Description.Equals(y.Description, StringComparison.InvariantCultureIgnoreCase) && Enumerable.SequenceEqual(x.ToppingModifications, y.ToppingModifications));
