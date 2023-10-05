@@ -65,6 +65,8 @@ namespace DominosCutScreen.Shared
         [XmlElement]
         public string ToppingDescription { get; set; }
 
+        public MakeLineToppingModification Clone() => (MakeLineToppingModification)MemberwiseClone();
+
         public override bool Equals(object? obj)
         {
             return Equals(obj as MakeLineToppingModification);

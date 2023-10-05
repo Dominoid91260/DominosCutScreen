@@ -70,49 +70,59 @@ namespace DominosCutScreen.Shared
             if (postBakeIndex == -1)
                 return;
 
-            var hasSpringOnion = PrettyItemName.Contains("*");
-            var postBakeStr = PrettyItemName[postBakeIndex..].Replace("+", null).Replace("*", null);
+            var postBakeStr = PrettyItemName[postBakeIndex..].Replace("+", string.Empty);
             PrettyItemName = PrettyItemName[0..postBakeIndex];
-            // Reverse the list so that spring onion (which appears first) will be the last added topping modification
-            var postbakes = postBakeStr.Split('+', StringSplitOptions.RemoveEmptyEntries).ToList();
+            var postbakes = new List<MakeLineToppingModification>();
             
-            if (hasSpringOnion)
+            foreach (var (code, tm) in MakelineOverrideManager.PostBakeOverrides.OrderByDescending(pair => pair.Key.Length))
             {
-                postbakes.Add("*");
+                if (postBakeStr.Contains(code, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    postBakeStr = postBakeStr.Replace(code, string.Empty, StringComparison.InvariantCultureIgnoreCase);
+                    postbakes.Add(tm);
+                }
+            }
+
+            // Check if there is still postbake codes left
+            if (postBakeStr.Length > 0)
+            {
+                postbakes.Add(new MakeLineToppingModification
+                {
+                    ToppingCode = "UKN",
+                    ToppingDescription = $"Post bake: {postBakeStr}",
+                    PizzaDistribution = 87
+                });
             }
 
             var count = postbakes.Count();
             for (var i = 0; i < count; ++i)
             {
-                var code = postbakes.ElementAt(i).ToUpper();
+                // Clone so we can make changes without affecting the original reference
+                var data = postbakes[i].Clone();
                 var displaySeq = -count + i;
 
-                if (MakelineOverrideManager.PostBakeOverrides.ContainsKey(code))
+                // Topping code already exists in modifications so ignore this
+                // This only bails if there is menu postbake modification on the whole pizza.
+                if (ToppingModifications.Any(tm => tm.ToppingCode == data.ToppingCode && tm.PizzaDistribution == 87))
+                    continue;
+
+                // Work out the distribution for post bake changes only on one half.
+                var distribution = 87;
+                var existingToppingModification = ToppingModifications.Where(tm => tm.ToppingCode == data.ToppingCode).FirstOrDefault();
+
+                if (existingToppingModification != null)
                 {
-                    var data = MakelineOverrideManager.PostBakeOverrides[code];
-
-                    // Topping code already exists in modifications so ignore this
-                    if (ToppingModifications.Any(tm => tm.ToppingCode == data.ToppingCode))
-                        continue;
-
-                    ToppingModifications.Add(new MakeLineToppingModification
+                    distribution = existingToppingModification.PizzaDistribution switch
                     {
-                        DisplaySequence = displaySeq,
-                        ToppingCode = data.ToppingCode,
-                        ToppingDescription = $"*** {data.ToppingDescription}"
-                    });
+                        49 => 50,
+                        50 => 49
+                    };
                 }
-                else
-                {
-                    Console.Error.WriteLine($"Unknown postbake code \"{code}\"");
 
-                    ToppingModifications.Add(new MakeLineToppingModification
-                    {
-                        DisplaySequence = displaySeq,
-                        ToppingCode = "UKN",
-                        ToppingDescription = $"Post bake: {code}"
-                    });
-                }
+                data.DisplaySequence = displaySeq;
+                data.ToppingDescription = $"*** {data.ToppingDescription}";
+                data.PizzaDistribution = distribution;
+                ToppingModifications.Add(data);
             }
         }
 

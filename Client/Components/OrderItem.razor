@@ -3,10 +3,39 @@
 <p class="card-text m-0">@(Item.Quantity)x @Item.PizzaBaseName @Item.PrettyItemName</p>
 <small class="text-uppercase fw-bold">@Item.Instructions</small>
 
-@foreach (var tm in Item.ToppingModifications.OrderBy(t => t.DisplaySequence))
+@{
+    var grouped = Item.ToppingModifications.GroupBy(tm => tm.PizzaDistribution).Select(g => new {
+        Distribution = g.Key,
+        ToppingModifications = g.ToList()
+    });
+}
+<div class="row">
+@foreach (var tm in grouped.Where(x => x.Distribution == 87).SelectMany(x => x.ToppingModifications).OrderBy(tm => tm.DisplaySequence))
 {
     var color = tm.ToppingAmountCode == 45 ? "danger" : "success";
     <p class="m-0 text-@color" style="text-indent: 1rem;">@tm.ToppingAmountDescription @tm.ToppingDescription</p>
+}
+</div>
+
+@if (grouped.Where(x => x.Distribution != 87).Any())
+{
+<div class="row">
+    <div class="col border">
+    @foreach (var tm in grouped.Where(x => x.Distribution == 49).SelectMany(x => x.ToppingModifications).OrderBy(tm => tm.DisplaySequence))
+    {
+        var color = tm.ToppingAmountCode == 45 ? "danger" : "success";
+        <p class="m-0 text-@color">@tm.ToppingAmountDescription @tm.ToppingDescription</p>
+    }
+    </div>
+
+    <div class="col border">
+    @foreach (var tm in grouped.Where(x => x.Distribution == 50).SelectMany(x => x.ToppingModifications).OrderBy(tm => tm.DisplaySequence))
+    {
+        var color = tm.ToppingAmountCode == 45 ? "danger" : "success";
+        <p class="m-0 text-@color">@tm.ToppingAmountDescription @tm.ToppingDescription</p>
+    }
+    </div>
+</div>
 }
 
 @code {
