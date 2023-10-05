@@ -47,13 +47,6 @@
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
-        foreach (var item in MakelineOrder.Items)
-        {
-            if (item.BumpedTimes.Count == 0)
-            {
-                Console.WriteLine($"Item has no bump times: {item.Description} in order {MakelineOrder.OrderNumber}");
-            }
-        }
 
         LastBumpTime = MakelineOrder.Items.SelectMany(i => i.BumpedTimes).Max();
 
@@ -72,7 +65,5 @@
                 FooterText = MakelineOrder.Address;
             }
         }
-
-        Console.WriteLine($"Order {MakelineOrder.OrderNumber} | {MakelineOrder.TypeCode} | {FooterText}");
     }
 }
