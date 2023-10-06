@@ -10,6 +10,7 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject HttpClient Http
 @inject IJSRuntime JS
+@inject SettingsService Settings
 
 <PageTitle>XML Data</PageTitle>
 
@@ -69,8 +70,8 @@
 
             if (!showAllOrders)
             {
-                ongoing = orders.Where(o => !CutBumpedOrders.Contains(o.OrderNumber) && (DateTime.Now - o.Items.Max(i => i.BumpedTimes.Max())) <= TimeSpan.FromSeconds(OvenTime + GraceTime));
-                finished = orders.Where(o => CutBumpedOrders.Contains(o.OrderNumber) || (DateTime.Now - o.Items.Max(i => i.BumpedTimes.Max())) > TimeSpan.FromSeconds(OvenTime + GraceTime)).Reverse();
+                ongoing = orders.Where(o => !CutBumpedOrders.Contains(o.OrderNumber) && (DateTime.Now - o.Items.Max(i => i.BumpedTimes.Max())) <= TimeSpan.FromSeconds(Settings.OvenTime + Settings.GraceTime));
+                finished = orders.Where(o => CutBumpedOrders.Contains(o.OrderNumber) || (DateTime.Now - o.Items.Max(i => i.BumpedTimes.Max())) > TimeSpan.FromSeconds(Settings.OvenTime + Settings.GraceTime)).Reverse();
             }
             else
             {
@@ -103,32 +104,12 @@
     private bool showAllOrders = false;
     private HashSet<DateTime> AlertedOrderNumbers = new();
 
-    /// <summary>
-    /// How long is the oven time in seconds
-    /// </summary>
-    private const int OvenTime = 300;
-
-    /// <summary>
-    /// How long should orders stay on the screen once they have been bumped for <see cref="OvenTime">
-    /// </summary>
-    private const int GraceTime = 90;
-
-    /// <summary>
-    /// How long in seconds between bumped items should the oven alert be triggered
-    /// </summary>
-    private const int AlertInterval = 150;
-
-    /// <summary>
-    /// How often in seconds to fetch new order and bump data from the server
-    /// </summary>
-    private const int FetchInterval = 5;
-
     protected override async Task OnInitializedAsync()
     {
         await GetData();
 
         FetchTimer.AutoReset = true;
-        FetchTimer.Interval = (int)TimeSpan.FromSeconds(FetchInterval).TotalMilliseconds;
+        FetchTimer.Interval = (int)TimeSpan.FromSeconds(Settings.FetchInterval).TotalMilliseconds;
         FetchTimer.Elapsed += async (object? sender, System.Timers.ElapsedEventArgs e) =>
         {
             await GetData();
@@ -156,8 +137,8 @@
         for (var index = 0; index < sortedBump.Count; ++index)
         {
             var currTime = sortedBump[index];
-            var expectedAlertTime = currTime.AddSeconds(OvenTime);
-            var cutOff = currTime.AddSeconds(OvenTime + GraceTime);
+            var expectedAlertTime = currTime.AddSeconds(Settings.OvenTime);
+            var cutOff = currTime.AddSeconds(Settings.OvenTime + Settings.GraceTime);
 
             if (!(DateTime.Now >= expectedAlertTime && DateTime.Now <= cutOff))
                 continue;
@@ -165,7 +146,7 @@
             var last = (index == 0) ? DateTime.Now.Date : sortedBump[index - 1];
 
             if (
-                (currTime - last).TotalSeconds >= AlertInterval &&
+                (currTime - last).TotalSeconds >= Settings.AlertInterval &&
                 !AlertedOrderNumbers.Contains(currTime)
                 )
                 {

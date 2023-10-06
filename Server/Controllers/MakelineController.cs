@@ -15,10 +15,18 @@ namespace DominosCutScreen.Server.Controllers
     [ApiController]
     public class MakelineController : ControllerBase
     {
+        private readonly SettingsService _settings;
+
+        public MakelineController(SettingsService settings)
+        {
+            _settings = settings;
+        }
+
         [HttpGet("orders")]
         public IEnumerable<MakeLineOrder> GetMakelineData()
         {
-            var arrayOfOrder = HttpContext.RequestServices.GetServices<IHostedService>().OfType<MakelineService>().First().Orders;
+            var makelineService = HttpContext.RequestServices.GetServices<IHostedService>().OfType<MakelineService>().First();
+            var arrayOfOrder = makelineService.Orders;
 
             if (arrayOfOrder == null)
                 yield break;
@@ -30,7 +38,8 @@ namespace DominosCutScreen.Server.Controllers
         [HttpGet("bump")]
         public IEnumerable<MakeLineOrderItemHistory> GetBumpHistory()
         {
-            var arrayOfHistory = HttpContext.RequestServices.GetServices<IHostedService>().OfType<MakelineService>().First().BumpHistory;
+            var makelineService = HttpContext.RequestServices.GetServices<IHostedService>().OfType<MakelineService>().First();
+            var arrayOfHistory = makelineService.BumpHistory;
 
             if (arrayOfHistory == null)
                 yield break;
@@ -45,7 +54,7 @@ namespace DominosCutScreen.Server.Controllers
             var client = new HttpClient();
             try
             {
-                var response = await client.PostAsync($"{MakelineService._address}/makelines/{MakelineService._makelineCode}/silenceAlarm", null);
+                var response = await client.PostAsync($"{_settings.MakelineServer}/makelines/{_settings.MakelineCode}/silenceAlarm", null);
                 if (response.IsSuccessStatusCode)
                     return Ok();
 

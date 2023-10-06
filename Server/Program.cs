@@ -1,4 +1,5 @@
 using DominosCutScreen.Server.Services;
+using DominosCutScreen.Shared;
 
 using Microsoft.AspNetCore.ResponseCompression;
 
@@ -16,6 +17,7 @@ namespace DominosCutScreen
             builder.Services.AddRazorPages();
             builder.Services.AddHttpClient();
             builder.Services.AddHostedService<MakelineService>();
+            builder.Services.AddSingleton<SettingsService>();
 
             var app = builder.Build();
 

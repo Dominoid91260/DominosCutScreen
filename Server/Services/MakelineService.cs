@@ -8,16 +8,8 @@ namespace DominosCutScreen.Server.Services
 {
     public class MakelineService : BackgroundService
     {
-        public const string _address = "http://10.104.37.32:59108";
-        public const int _makelineCode = 2;
-
-        /// <summary>
-        /// In minutes, how often should we poll the makeline for order and bump history
-        /// The makeline only keeps full bumped order history for a few minutes (i think about 5)
-        /// </summary>
-        private const int _makelinePollInterval = 10;
-
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly SettingsService _settings;
         private readonly object _lock = new();
         private DateTime _lastMakelineCheck;
 
@@ -42,9 +34,10 @@ namespace DominosCutScreen.Server.Services
                 return null;
             }
         }
-        private static async Task<string?> MakeHTTPRequest(HttpClient Client, string Path)
+
+        private async Task<string?> MakeHTTPRequest(HttpClient Client, string Path)
         {
-            string fullPath = $"{_address}/makelines/{_makelineCode}/{Path}";
+            string fullPath = $"{_settings.MakelineServer}/makelines/{_settings.MakelineCode}/{Path}";
             try
             {
                 var response = await Client.GetAsync(fullPath);
@@ -63,7 +56,7 @@ namespace DominosCutScreen.Server.Services
             }
         }
 
-        private static async Task<T?> FetchAndDeserialize<T>(HttpClient Client, string Path) where T : class
+        private async Task<T?> FetchAndDeserialize<T>(HttpClient Client, string Path) where T : class
         {
             var result = await MakeHTTPRequest(Client, Path);
 
@@ -73,9 +66,10 @@ namespace DominosCutScreen.Server.Services
             return DeserializeXML<T>(result);
         }
 
-        public MakelineService(IHttpClientFactory httpClientFactory)
+        public MakelineService(IHttpClientFactory httpClientFactory, SettingsService Settings)
         {
             _httpClientFactory = httpClientFactory;
+            _settings = Settings;
             Orders = new List<MakeLineOrder>();
             BumpHistory = new List<MakeLineOrderItemHistory>();
             _lastMakelineCheck = DateTime.Now.Date; // Make it midnight so we get as much info as possible
@@ -140,7 +134,7 @@ namespace DominosCutScreen.Server.Services
                     BumpHistory = new List<MakeLineOrderItemHistory>();
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(_makelinePollInterval), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(_settings.FetchInterval), stoppingToken);
             }
         }
     }

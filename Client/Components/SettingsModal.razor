@@ -1,3 +1,6 @@
+@using DominosCutScreen.Shared;
+@inject SettingsService Settings
+
 <div class="modal" id="settingsModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -13,7 +16,17 @@
                         <p>Makeline Host</p>
                     </div>
                     <div class="col">
-                        <input type="text" @onchange="OnMakelineHostChanged" />
+                        <input type="text" @bind="Settings.MakelineServer" @bind:after="OnMakelineHostChanged" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Makeline Code -->
+                    <div class="col">
+                        <p>Makeline Code</p>
+                    </div>
+                    <div class="col">
+                        <input type="text" @bind="Settings.MakelineCode" @bind:after="OnMakelineCodeChanged" />
                     </div>
                 </div>
 
@@ -23,7 +36,7 @@
                         <p>Makeline Fetch Time (s)</p>
                     </div>
                     <div class="col">
-                        <input type="number" @onchange="OnMakelineFetchTimeChanged"/>
+                        <input type="number" @bind="Settings.FetchInterval" @bind:after="OnMakelineFetchTimeChanged"/>
                     </div>
                 </div>
 
@@ -33,7 +46,7 @@
                         <p>Oven Time (s)</p>
                     </div>
                     <div class="col">
-                        <input type="number" @onchange="OnOvenTimeChanged" />
+                        <input type="number" @bind="Settings.OvenTime" @bind:after="OnOvenTimeChanged" />
                     </div>
                 </div>
 
@@ -43,7 +56,7 @@
                         <p>Oven Grace Time (s)</p>
                     </div>
                     <div class="col">
-                        <input type="number" @onchange="OnOvenGraceTimeChanged" />
+                        <input type="number" @bind="Settings.GraceTime" @bind:after="OnOvenGraceTimeChanged" />
                     </div>
                 </div>
 
@@ -53,17 +66,17 @@
                         <p>Oven Alert Gap Time (s)</p>
                     </div>
                     <div class="col">
-                        <input type="number" @onchange="OnOvenAlertGapTimeChanged" />
+                        <input type="number" @bind="Settings.AlertInterval" @bind:after="OnOvenAlertGapTimeChanged" />
                     </div>
                 </div>
 
                 <div class="row">
-                    <!-- Timed Order Alert Time -->
+                    <!-- Timed Order Seconds Per Pizza -->
                     <div class="col">
-                        <p>Timed Order Alert Time (s)</p>
+                        <p>Timed Order Seconds Per Pizza (s)</p>
                     </div>
                     <div class="col">
-                        <input type="number" @onchange="OnTimedOrderAlertTimeChanged" />
+                        <input type="number" @bind="Settings.TimedOrderSecondsPerPizza" @bind:after="OnTimedOrderAlertTimeChanged" />
                     </div>
                 </div>
             </div>
@@ -77,32 +90,37 @@
 
 @code
 {
-    void OnMakelineHostChanged(ChangeEventArgs e)
+    private async Task OnMakelineHostChanged()
     {
         
     }
 
-    void OnMakelineFetchTimeChanged(ChangeEventArgs e)
+    private async Task OnMakelineCodeChanged()
     {
         
     }
 
-    void OnOvenTimeChanged(ChangeEventArgs e)
+    private async Task OnMakelineFetchTimeChanged()
     {
         
     }
 
-    void OnOvenGraceTimeChanged(ChangeEventArgs e)
+    private async Task OnOvenTimeChanged()
     {
         
     }
 
-    void OnOvenAlertGapTimeChanged(ChangeEventArgs e)
+    private async Task OnOvenGraceTimeChanged()
     {
         
     }
 
-    void OnTimedOrderAlertTimeChanged(ChangeEventArgs e)
+    private async Task  OnOvenAlertGapTimeChanged()
+    {
+        
+    }
+
+    private async Task OnTimedOrderAlertTimeChanged()
     {
         
     }
