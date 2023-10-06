@@ -35,7 +35,13 @@
         <span>@counter.Current / @counter.Target</span>
     </div>
     <div class="col">
-        <button class="btn btn-danger" @onclick="@(e => RemoveCounterByIndex(index))">Remove</button>
+        <a class="oi oi-media-@(counter.Running ? "pause" : "play")" @onclick="@(e => ToggleCounter(counter))"></a>
+    </div>
+    <div class="col">
+        <a class="oi oi-reload" @onclick="@(e => counter.Current = 0)"></a>
+    </div>
+    <div class="col">
+        <a class="oi oi-trash" @onclick="@(e => RemoveCounterByIndex(index))"></a>
     </div>
 </div>
 }
@@ -48,6 +54,7 @@
         public int Target { get; set; }
         public int Current { get; set; } = 0;
         public DateTime From { get; set; }
+        public bool Running { get; set; } = false;
     }
 
     class HistoryComparer : IEqualityComparer<MakeLineOrderItemHistory>
@@ -105,7 +112,7 @@
             var newItems = newBumpHistory.Except(BumpHistory, new HistoryComparer());
             foreach (var history in newItems)
             {
-                foreach (var counter in Counters.Where(c => c.ProductName.Equals(history.Description, StringComparison.InvariantCultureIgnoreCase) && history.BumpedAtTime > c.From))
+                foreach (var counter in Counters.Where(c => c.Running && c.ProductName.Equals(history.Description, StringComparison.InvariantCultureIgnoreCase) && history.BumpedAtTime > c.From))
                 {
                     ++counter.Current;
                 }
@@ -114,15 +121,14 @@
             BumpHistory = newBumpHistory.ToList();
         }
 
-        InvokeAsync(StateHasChanged);
+        await InvokeAsync(StateHasChanged);
     }
 
     private void Submit()
     {
         if (string.IsNullOrWhiteSpace(Model.ProductName) || Model.Target <= 0)
             return;
-            
-        Model.From = DateTime.Now;
+
         Counters.Add(Model);
         Model = new();
 
@@ -134,5 +140,15 @@
         Console.WriteLine($"Removing counter #{index} / {Counters.Count}");
         Counters.RemoveAt(index);
         InvokeAsync(StateHasChanged);
+    }
+
+    private void ToggleCounter(Counter counter)
+    {
+        counter.Running = !counter.Running;
+
+        if (counter.Running)
+        {
+            counter.From = DateTime.Now;
+        }
     }
 }
