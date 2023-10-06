@@ -1,0 +1,109 @@
+<div class="modal" id="settingsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Settings</h5>
+                <button class="btn-close" type="button" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Makeline Host -->
+                    <div class="col">
+                        <p>Makeline Host</p>
+                    </div>
+                    <div class="col">
+                        <input type="text" @onchange="OnMakelineHostChanged" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Makeline Fetch Time -->
+                    <div class="col">
+                        <p>Makeline Fetch Time (s)</p>
+                    </div>
+                    <div class="col">
+                        <input type="number" @onchange="OnMakelineFetchTimeChanged"/>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Oven Time -->
+                    <div class="col">
+                        <p>Oven Time (s)</p>
+                    </div>
+                    <div class="col">
+                        <input type="number" @onchange="OnOvenTimeChanged" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Oven Grace Time -->
+                    <div class="col">
+                        <p>Oven Grace Time (s)</p>
+                    </div>
+                    <div class="col">
+                        <input type="number" @onchange="OnOvenGraceTimeChanged" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Oven Alert Gap Time -->
+                    <div class="col">
+                        <p>Oven Alert Gap Time (s)</p>
+                    </div>
+                    <div class="col">
+                        <input type="number" @onchange="OnOvenAlertGapTimeChanged" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Timed Order Alert Time -->
+                    <div class="col">
+                        <p>Timed Order Alert Time (s)</p>
+                    </div>
+                    <div class="col">
+                        <input type="number" @onchange="OnTimedOrderAlertTimeChanged" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code
+{
+    void OnMakelineHostChanged(ChangeEventArgs e)
+    {
+        
+    }
+
+    void OnMakelineFetchTimeChanged(ChangeEventArgs e)
+    {
+        
+    }
+
+    void OnOvenTimeChanged(ChangeEventArgs e)
+    {
+        
+    }
+
+    void OnOvenGraceTimeChanged(ChangeEventArgs e)
+    {
+        
+    }
+
+    void OnOvenAlertGapTimeChanged(ChangeEventArgs e)
+    {
+        
+    }
+
+    void OnTimedOrderAlertTimeChanged(ChangeEventArgs e)
+    {
+        
+    }
+}
