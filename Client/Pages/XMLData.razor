@@ -73,7 +73,7 @@
     }
     @foreach (var order in ongoing)
     {
-        <Order MakelineOrder=order OnClicked=OnOrderClicked />
+        <Order @key=order.OrderNumber MakelineOrder=order OnClicked=OnOrderClicked />
     }
     </div>
 
@@ -81,7 +81,7 @@
     <div id="previousOrders" class="d-flex flex-row overflow-auto thinScollBar mb-4">
     @foreach (var order in finished)
     {
-        <Order MakelineOrder=order />
+        <Order @key=order.OrderNumber MakelineOrder=order />
     }
     </div>
 </div>
