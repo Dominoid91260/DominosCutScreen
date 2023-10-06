@@ -50,14 +50,12 @@
 
         if(orders.Any())
         {
-            orders = orders.OrderBy(o => o.Items.Max(i => {
-                if (i.BumpedTimes.Count == 0)
-                {
-                    Console.WriteLine($"{o.OrderNumber} {i.Description}");
-                }
-
-                return i.BumpedTimes.Max();
-            })).ToList();
+            orders = orders.OrderBy(o => {
+                if (o.Items.Any(i => i.BumpedTimes.Count == 0))
+                    return o.ActualOrderedAt;
+                
+                return o.Items.Max(i => i.BumpedTimes.Max());
+            }).ToList();
 
             if (!showAllOrders)
             {
