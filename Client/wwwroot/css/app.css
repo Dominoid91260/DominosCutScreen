@@ -132,3 +132,7 @@ a, .btn-link {
 {
     display: none;
 }
+
+.nav-flush .nav-link {
+    border-radius: 0;
+}
