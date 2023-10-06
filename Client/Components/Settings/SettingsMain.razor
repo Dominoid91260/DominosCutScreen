@@ -1,0 +1,110 @@
+﻿@using DominosCutScreen.Shared;
+@inject SettingsService Settings
+
+<div class="row">
+    <!-- Makeline Host -->
+    <div class="col">
+        <p>Makeline Host</p>
+    </div>
+    <div class="col">
+        <input type="text" @bind="Settings.MakelineServer" @bind:after="OnMakelineHostChanged" />
+    </div>
+</div>
+
+<div class="row">
+    <!-- Makeline Code -->
+    <div class="col">
+        <p>Makeline Code</p>
+    </div>
+    <div class="col">
+        <input type="text" @bind="Settings.MakelineCode" @bind:after="OnMakelineCodeChanged" />
+    </div>
+</div>
+
+<div class="row">
+    <!-- Makeline Fetch Time -->
+    <div class="col">
+        <p>Makeline Fetch Time (s)</p>
+    </div>
+    <div class="col">
+        <input type="number" @bind="Settings.FetchInterval" @bind:after="OnMakelineFetchTimeChanged" />
+    </div>
+</div>
+
+<div class="row">
+    <!-- Oven Time -->
+    <div class="col">
+        <p>Oven Time (s)</p>
+    </div>
+    <div class="col">
+        <input type="number" @bind="Settings.OvenTime" @bind:after="OnOvenTimeChanged" />
+    </div>
+</div>
+
+<div class="row">
+    <!-- Oven Grace Time -->
+    <div class="col">
+        <p>Oven Grace Time (s)</p>
+    </div>
+    <div class="col">
+        <input type="number" @bind="Settings.GraceTime" @bind:after="OnOvenGraceTimeChanged" />
+    </div>
+</div>
+
+<div class="row">
+    <!-- Oven Alert Gap Time -->
+    <div class="col">
+        <p>Oven Alert Gap Time (s)</p>
+    </div>
+    <div class="col">
+        <input type="number" @bind="Settings.AlertInterval" @bind:after="OnOvenAlertGapTimeChanged" />
+    </div>
+</div>
+
+<div class="row">
+    <!-- Timed Order Seconds Per Pizza -->
+    <div class="col">
+        <p>Timed Order Seconds Per Pizza (s)</p>
+    </div>
+    <div class="col">
+        <input type="number" @bind="Settings.TimedOrderSecondsPerPizza" @bind:after="OnTimedOrderAlertTimeChanged" />
+    </div>
+</div>
+
+@code
+{
+    private async Task OnMakelineHostChanged()
+    {
+
+    }
+
+    private async Task OnMakelineCodeChanged()
+    {
+
+    }
+
+    private async Task OnMakelineFetchTimeChanged()
+    {
+
+    }
+
+    private async Task OnOvenTimeChanged()
+    {
+
+    }
+
+    private async Task OnOvenGraceTimeChanged()
+    {
+
+    }
+
+    private async Task OnOvenAlertGapTimeChanged()
+    {
+
+    }
+
+    private async Task OnTimedOrderAlertTimeChanged()
+    {
+
+    }
+}
