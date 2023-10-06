@@ -12,8 +12,9 @@ namespace DominosCutScreen.Shared
         {
             { "*", new() { ToppingCode = "SPO", ToppingDescription = "Spring Onion" } },
             { "B", new() { ToppingCode = "BtrChk", ToppingDescription = "Butter Chicken Sce" } },
-            { "CS", new() { ToppingCode = "CeSpr", ToppingDescription = "Cheese Sprinkle"} }, // Not a real topping so theres no topping code
-            { "F", new () { ToppingCode = "FRANKS", ToppingDescription = "Franks Hot Sce"} },
+            { "CS", new() { ToppingCode = "CeSpr", ToppingDescription = "Cheese Sprinkle" } }, // Not a real topping so theres no topping code
+            { "F", new () { ToppingCode = "FRANKS", ToppingDescription = "Franks Hot Sce" } },
+            { "GB", new () { ToppingCode = "GBUTT", ToppingDescription = "Garlic Butter" } },
             { "HB", new() { ToppingCode = "HICBBQ", ToppingDescription = "Hickory BBQ" } },
             { "HO", new() { ToppingCode = "HOLLAND", ToppingDescription = "Hollandaise" } },
             { "M", new() { ToppingCode = "My", ToppingDescription = "Mayonnaise" } },
