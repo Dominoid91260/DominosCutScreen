@@ -102,12 +102,17 @@
     /// </summary>
     private const int GraceTime = 90;
 
+    /// <summary>
+    /// How often in seconds to fetch new order and bump data from the server
+    /// </summary>
+    private const int FetchInterval = 5;
+
     protected override async Task OnInitializedAsync()
     {
         await GetData();
 
         FetchTimer.AutoReset = true;
-        FetchTimer.Interval = 5000;
+        FetchTimer.Interval = (int)TimeSpan.FromSeconds(FetchInterval).TotalMilliseconds;
         FetchTimer.Elapsed += async (object? sender, System.Timers.ElapsedEventArgs e) =>
         {
             await GetData();
