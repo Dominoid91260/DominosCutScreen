@@ -1,74 +1,46 @@
 ﻿@using DominosCutScreen.Shared;
 @inject SettingsService Settings
 
-<div class="row">
-    <!-- Makeline Host -->
-    <div class="col">
-        <p>Makeline Host</p>
-    </div>
-    <div class="col">
-        <input type="text" @bind="Settings.MakelineServer" @bind:after="OnMakelineHostChanged" />
-    </div>
+<!-- Makeline Host -->
+<div class="form-floating mb-1">
+    <InputText class="form-control" @bind-Value="Settings.MakelineServer" @bind-Value:after="OnMakelineHostChanged" />
+    <label class="form-label">Makeline Host</label>
 </div>
 
-<div class="row">
-    <!-- Makeline Code -->
-    <div class="col">
-        <p>Makeline Code</p>
-    </div>
-    <div class="col">
-        <input type="text" @bind="Settings.MakelineCode" @bind:after="OnMakelineCodeChanged" />
-    </div>
+<!-- Makeline Code -->
+<div class="form-floating mb-1">
+    <InputNumber class="form-control" @bind-Value="Settings.MakelineCode" @bind-Value:after="OnMakelineCodeChanged" />
+    <label>Makeline Code</label>
 </div>
 
-<div class="row">
-    <!-- Makeline Fetch Time -->
-    <div class="col">
-        <p>Makeline Fetch Time (s)</p>
-    </div>
-    <div class="col">
-        <input type="number" @bind="Settings.FetchInterval" @bind:after="OnMakelineFetchTimeChanged" />
-    </div>
+<!-- Makeline Fetch Time -->
+<div class="form-floating mb-1">
+    <InputNumber class="form-control" @bind-Value="Settings.FetchInterval" @bind-Value:after="OnMakelineFetchTimeChanged" />
+    <label>Makeline Fetch Time (s)</label>
 </div>
 
-<div class="row">
-    <!-- Oven Time -->
-    <div class="col">
-        <p>Oven Time (s)</p>
-    </div>
-    <div class="col">
-        <input type="number" @bind="Settings.OvenTime" @bind:after="OnOvenTimeChanged" />
-    </div>
+<!-- Oven Time -->
+<div class="form-floating mb-1">
+    <InputNumber class="form-control" @bind-Value="Settings.OvenTime" @bind-Value:after="OnOvenTimeChanged" />
+    <label>Oven Time (s)</label>
 </div>
 
-<div class="row">
-    <!-- Oven Grace Time -->
-    <div class="col">
-        <p>Oven Grace Time (s)</p>
-    </div>
-    <div class="col">
-        <input type="number" @bind="Settings.GraceTime" @bind:after="OnOvenGraceTimeChanged" />
-    </div>
+<!-- Oven Grace Time -->
+<div class="form-floating mb-1">
+    <InputNumber class="form-control" @bind-Value="Settings.GraceTime" @bind-Value:after="OnOvenGraceTimeChanged" />
+    <label>Oven Grace Time (s)</label>
 </div>
 
-<div class="row">
-    <!-- Oven Alert Gap Time -->
-    <div class="col">
-        <p>Oven Alert Gap Time (s)</p>
-    </div>
-    <div class="col">
-        <input type="number" @bind="Settings.AlertInterval" @bind:after="OnOvenAlertGapTimeChanged" />
-    </div>
+<!-- Oven Alert Gap Time -->
+<div class="form-floating mb-1">
+    <InputNumber class="form-control" @bind-Value="Settings.AlertInterval" @bind-Value:after="OnOvenAlertGapTimeChanged" />
+    <label>Oven Alert Gap Time (s)</label>
 </div>
 
-<div class="row">
-    <!-- Timed Order Seconds Per Pizza -->
-    <div class="col">
-        <p>Timed Order Seconds Per Pizza (s)</p>
-    </div>
-    <div class="col">
-        <input type="number" @bind="Settings.TimedOrderSecondsPerPizza" @bind:after="OnTimedOrderAlertTimeChanged" />
-    </div>
+<!-- Timed Order Seconds Per Pizza -->
+<div class="form-floating mb-1">
+    <InputNumber class="form-control" @bind-Value="Settings.TimedOrderSecondsPerPizza" @bind-Value:after="OnTimedOrderAlertTimeChanged" />
+    <label>Timed Order Seconds Per Pizza (s)</label>
 </div>
 
 @code
