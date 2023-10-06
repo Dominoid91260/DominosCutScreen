@@ -35,6 +35,7 @@
                 OrderNumber = g.Key,
                 TakenBy = "Reconstructed Order",
                 TypeCode = g.First().TypeCode,
+                IsExpedited = g.Any(h => h.Description.Contains("Priority", StringComparison.InvariantCultureIgnoreCase)),
                 Items = g.GroupBySequential(i => new { i.Description, i.ToppingModifications }, i => i, (x, y) => x.Description.Equals(y.Description, StringComparison.InvariantCultureIgnoreCase) && Enumerable.SequenceEqual(x.ToppingModifications, y.ToppingModifications))
                 .Select(g => new MakeLineOrderLine{
                     Quantity = g.Count(),
