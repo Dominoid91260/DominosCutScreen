@@ -42,6 +42,7 @@ namespace DominosCutScreen.Shared
         /// code 49 = qty 1
         /// code 50 = qty 2
         /// code 51 = qty 3
+        /// code 126 = light
         /// Sometimes this is empty. eg added chilli flakes, added bbq sauce, added vegan cheese
         /// </summary>
         [XmlElement]
