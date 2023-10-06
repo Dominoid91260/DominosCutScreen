@@ -13,11 +13,21 @@
 
 <PageTitle>XML Data</PageTitle>
 
-<div class="my-1">
-    <button @onclick="@(async e => { showAllOrders = true; await InvokeAsync(StateHasChanged); })">Show All Orders</button>
-    <button @onclick="@(async e => { showAllOrders = false; await InvokeAsync(StateHasChanged); })">Trim Orders</button>
-    <button @onclick=@RequestSilenceMakeline>STFU Makeline</button>
-</div>
+<nav class="navbar navbar-expand bg-light">
+    <div class="container-fluid">
+        <ul class="navbar-nav flex-row">
+            <li class="nav-item">
+                <button class="btn btn-primary" @onclick="@(async e => { showAllOrders = true; await InvokeAsync(StateHasChanged); })">Show All Orders</button>
+            </li>
+            <li class="nav-itemm ms-3">
+                <button class="btn btn-primary" @onclick="@(async e => { showAllOrders = false; await InvokeAsync(StateHasChanged); })">Trim Orders</button>
+            </li>
+            <li class="nav-item ms-3">
+                <button class="btn btn-primary" @onclick=@RequestSilenceMakeline>STFU Makeline</button>
+            </li>
+        </ul>
+    </div>
+</nav>
 
 <div class="d-grid">
     <h4>Live Orders</h4>
