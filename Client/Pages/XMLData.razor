@@ -91,6 +91,7 @@
     private List<MakeLineOrderItemHistory> BumpHistory = new();
     private List<int> CutBumpedOrders = new();
     private bool showAllOrders = false;
+    private HashSet<DateTime> AlertedOrderNumbers = new();
 
     /// <summary>
     /// How long is the oven time in seconds
@@ -101,6 +102,11 @@
     /// How long should orders stay on the screen once they have been bumped for <see cref="OvenTime">
     /// </summary>
     private const int GraceTime = 90;
+
+    /// <summary>
+    /// How long in seconds between bumped items should the oven alert be triggered
+    /// </summary>
+    private const int AlertInterval = 150;
 
     /// <summary>
     /// How often in seconds to fetch new order and bump data from the server
@@ -134,6 +140,28 @@
         if (newOrders != null)
         {
             Orders = newOrders.ToList();
+        }
+        
+        var sortedBump = BumpHistory.GroupBy(h => h.BumpedAtTime).Select(g => g.Key).OrderBy(d => d).ToList();
+        for (var index = 0; index < sortedBump.Count; ++index)
+        {
+            var currTime = sortedBump[index];
+            var expectedAlertTime = currTime.AddSeconds(OvenTime);
+            var cutOff = currTime.AddSeconds(OvenTime + GraceTime);
+
+            if (!(DateTime.Now >= expectedAlertTime && DateTime.Now <= cutOff))
+                continue;
+
+            var last = (index == 0) ? DateTime.Now.Date : sortedBump[index - 1];
+
+            if (
+                (currTime - last).TotalSeconds >= AlertInterval &&
+                !AlertedOrderNumbers.Contains(currTime)
+                )
+                {
+                    AlertedOrderNumbers.Add(currTime);
+                    await JS.InvokeVoidAsync("playOvenAlert");
+                }
         }
 
         await InvokeAsync(StateHasChanged);
