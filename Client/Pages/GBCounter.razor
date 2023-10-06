@@ -1,0 +1,138 @@
+@page "/gbcounter"
+@using DominosCutScreen.Shared
+@using System.Text.Json
+@inject HttpClient Http
+@implements IDisposable
+
+<EditForm Model="@Model" OnSubmit="@Submit">
+    <div class="form-group">
+        <label>Product</label>
+        <InputText class="form-control" @bind-Value="Model!.ProductName" />
+    </div>
+
+    <div class="form-group">
+        <label>Amount</label>
+        <InputNumber class="form-control" @bind-Value="Model!.Target" />
+    </div>
+    <div class="form-group">
+        <button class="btn btn-primary" type="submit">Add</button>
+    </div>
+</EditForm>
+
+@for (var i = 0; i < Counters.Count; ++i)
+{
+    var index = i;
+    var counter = Counters[index];
+
+<div class="row border mt-2 align-center display-6">
+    <div class="col">
+        <span>@i</span>
+    </div>
+    <div class="col">
+        <span>@counter.ProductName</span>
+    </div>
+    <div class="col">
+        <span>@counter.Current / @counter.Target</span>
+    </div>
+    <div class="col">
+        <button class="btn btn-danger" @onclick="@(e => RemoveCounterByIndex(index))">Remove</button>
+    </div>
+</div>
+}
+
+@code
+{
+    class Counter
+    {
+        public string ProductName { get; set; }
+        public int Target { get; set; }
+        public int Current { get; set; } = 0;
+        public DateTime From { get; set; }
+    }
+
+    class HistoryComparer : IEqualityComparer<MakeLineOrderItemHistory>
+    {
+        public int GetHashCode(MakeLineOrderItemHistory History)
+        {
+            if (History == null)
+                return 0;
+
+            return HashCode.Combine(History.Description, History.BumpedAtTime);
+        }
+
+        public bool Equals(MakeLineOrderItemHistory Left, MakeLineOrderItemHistory Right)
+        {
+            if (object.ReferenceEquals(Left, Right))
+                return true;
+
+            if (Left == null || Right == null)
+                return false;
+
+            return Left == Right && Left.BumpedAtTime == Right.BumpedAtTime;
+        }
+    }
+
+    private Counter Model { get; set; }
+    private System.Timers.Timer FetchTimer = new ();
+    private List<Counter> Counters = new();
+    private List<MakeLineOrderItemHistory> BumpHistory = new();
+    private int FetchInterval = 10;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Model ??= new();
+        await GetData();
+
+        FetchTimer.AutoReset = true;
+        FetchTimer.Interval = (int)TimeSpan.FromSeconds(FetchInterval).TotalMilliseconds;
+        FetchTimer.Elapsed += async (object? sender, System.Timers.ElapsedEventArgs e) =>
+        {
+            await GetData();
+        };
+        FetchTimer.Start();
+    }
+
+    public void Dispose()
+    {
+        FetchTimer.Dispose();
+    }
+
+    private async Task GetData()
+    {
+        var newBumpHistory = await Http.GetFromJsonAsync<IEnumerable<MakeLineOrderItemHistory>>("api/Makeline/bump");
+        if (newBumpHistory != null)
+        {
+            var newItems = newBumpHistory.Except(BumpHistory, new HistoryComparer());
+            foreach (var history in newItems)
+            {
+                foreach (var counter in Counters.Where(c => c.ProductName.Equals(history.Description, StringComparison.InvariantCultureIgnoreCase) && history.BumpedAtTime > c.From))
+                {
+                    ++counter.Current;
+                }
+            }
+
+            BumpHistory = newBumpHistory.ToList();
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void Submit()
+    {
+        if (string.IsNullOrWhiteSpace(Model.ProductName) || Model.Target <= 0)
+            return;
+            
+        Model.From = DateTime.Now;
+        Counters.Add(Model);
+        Model = new();
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void RemoveCounterByIndex(int index)
+    {
+        Console.WriteLine($"Removing counter #{index} / {Counters.Count}");
+        Counters.RemoveAt(index);
+        InvokeAsync(StateHasChanged);
+    }
+}
