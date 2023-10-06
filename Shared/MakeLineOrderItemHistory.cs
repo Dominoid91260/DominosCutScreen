@@ -50,7 +50,7 @@ namespace DominosCutScreen.Shared
             return other is not null &&
                    Description == other.Description &&
                    OrderNumber == other.OrderNumber &&
-                   EqualityComparer<List<MakeLineToppingModification>>.Default.Equals(ToppingModifications, other.ToppingModifications);
+                   Enumerable.SequenceEqual(ToppingModifications, other.ToppingModifications);
         }
 
         public override int GetHashCode()
