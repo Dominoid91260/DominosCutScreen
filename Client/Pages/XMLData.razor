@@ -73,7 +73,7 @@
                 <button class="btn btn-primary" @onclick="@(async e => { showAllOrders = false; await InvokeAsync(StateHasChanged); })">Trim Orders</button>
             </li>
             <li class="nav-item ms-3">
-                <button class="btn btn-primary" @onclick=@RequestSilenceMakeline>STFU Makeline</button>
+                <button class="btn btn-primary" @onclick="@(async e => await RequestSilenceMakeline())">STFU Makeline</button>
             </li>
         </ul>
     </div>
