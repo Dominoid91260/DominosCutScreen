@@ -67,5 +67,25 @@ namespace DominosCutScreen.Server.Controllers
 
             return BadRequest();
         }
+
+        [HttpGet("reprint")]
+        public async Task<IActionResult> ReprintOrderReceipt(int OrderNumber)
+        {
+            var client = new HttpClient();
+            try
+            {
+                var response = await client.PostAsync($"{_settings.MakelineServer}/makelines/{_settings.MakelineCode}/orders/{OrderNumber}/print", null);
+                if (response.IsSuccessStatusCode)
+                    return Ok();
+
+                Console.Error.WriteLine($"MakelineController.ReprintOrderReceipt failed: {response.ReasonPhrase}");
+            }
+            catch (HttpRequestException e)
+            {
+                Console.Error.WriteLine($"MakelineController.ReprintOrderReceipt failed: {e.Message}");
+            }
+
+            return BadRequest();
+        }
     }
 }
