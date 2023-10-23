@@ -6,12 +6,28 @@
     var delcolor = (!MakelineOrder.IsExpedited && MakelineOrder.TypeCode == "D") ? "background-color: plum;" : string.Empty;
 }
 <div class="card m-2" style="flex: 0 0 18rem;">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title fw-bold m-0">@MakelineOrder.OrderNumber</h5>
+        @if (ShowPin)
+        {
+        <button class="btn btn-primary orderControl" @onclick="@(async e => await OnPinClicked.InvokeAsync(MakelineOrder))"><span class="oi oi-pin"></span></button>
+        }
+
+        @if (ShowReceipt)
+        {
+        <button class="btn btn-primary orderControl" @onclick="@(async e => await OnReceiptClicked.InvokeAsync(MakelineOrder))"><span class="oi oi-document"></span></button>
+        }
+
+        @if (ShowDismiss)
+        {
+        <button class="btn btn-primary orderControl" @onclick="@(async e => await OnDismissClicked.InvokeAsync(MakelineOrder))"><span class="oi oi-circle-x"></span></button>
+        }
+    </div>
     <div class="card-body">
         <div class="progress position-relative">
             <div class="progress-bar" data-time="@(LastBumpTime.ToString("s"))"></div>
             <span class="text-black fw-bold justify-content-center d-flex w-100 position-absolute">@(((LastBumpTime + TimeSpan.FromSeconds(300 + 90)) - DateTime.Now).ToString(@"mm\:ss"))</span>
         </div>
-        <h5 class="card-title fw-bold">Order @MakelineOrder.OrderNumber</h5>
         @{
             var items = MakelineOrder.Items;
             var groupedSeq = items.GroupBySequential(i => new { i.Description, i.ToppingModifications }, i => i, (x, y) => x.Description.Equals(y.Description, StringComparison.InvariantCultureIgnoreCase) && Enumerable.SequenceEqual(x.ToppingModifications, y.ToppingModifications));
@@ -31,8 +47,6 @@
     <div class="card-footer text-center @bgcolor" style="@delcolor">
         <small>@FooterText</small>
     </div>
-
-    <a class="stretched-link" href="#" @onclick:preventDefault @onclick="@(async e => { await OnClicked.InvokeAsync(MakelineOrder); })"></a>
 </div>
 
 @code {
@@ -40,7 +54,22 @@
     public required MakeLineOrder MakelineOrder { get; set; }
 
     [Parameter]
-    public EventCallback<MakeLineOrder> OnClicked { get; set; }
+    public EventCallback<MakeLineOrder> OnPinClicked { get; set; }
+
+    [Parameter]
+    public EventCallback<MakeLineOrder> OnReceiptClicked { get; set; }
+
+    [Parameter]
+    public EventCallback<MakeLineOrder> OnDismissClicked { get; set; }
+
+    [Parameter]
+    public bool ShowPin { get; set; } = true;
+
+    [Parameter]
+    public bool ShowReceipt { get; set; } = true;
+
+    [Parameter]
+    public bool ShowDismiss { get; set; } = true;
 
     private DateTime LastBumpTime;
     private string FooterText = string.Empty;

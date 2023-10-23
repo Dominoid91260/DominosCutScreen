@@ -136,3 +136,12 @@ a, .btn-link {
 .nav-flush .nav-link {
     border-radius: 0;
 }
+
+.card .orderControl
+{
+    display: none;
+}
+    .card:hover .orderControl
+    {
+        display: inline-block;
+    }

@@ -12,6 +12,55 @@
 @inject IJSRuntime JS
 @inject SettingsService Settings
 
+@{
+    // Order by max bump time to the order that was bumped first will be first.
+    List<MakeLineOrder> orders = Orders.Where(o => o.IsBumped).ToList();
+    IEnumerable<MakeLineOrder> ongoing = new List<MakeLineOrder>();
+    IEnumerable<MakeLineOrder> finished = new List<MakeLineOrder>();
+
+    if (BumpHistory.Any())
+    {
+        orders.AddRange(BumpHistory.GroupBy(h => h.OrderNumber).Where(g => !orders.Any(o => o.OrderNumber == g.Key)).Select(g => new MakeLineOrder
+        {
+            OrderNumber = g.Key,
+            TakenBy = "Reconstructed Order",
+            TypeCode = g.First().TypeCode,
+            IsExpedited = g.Any(h => h.Description.Contains("Priority", StringComparison.InvariantCultureIgnoreCase)),
+            Items = g.GroupBySequential(i => new { i.Description, i.ToppingModifications }, i => i, (x, y) => x.Description.Equals(y.Description, StringComparison.InvariantCultureIgnoreCase) && Enumerable.SequenceEqual(x.ToppingModifications, y.ToppingModifications))
+            .Select(g => new MakeLineOrderLine{
+                Quantity = g.Count(),
+                Description = g.First().Description,
+                ToppingModifications = g.First().ToppingModifications,
+                BumpedTimes = g.Select(i => i.BumpedAtTime).ToList(),
+                PrettyItemName = g.First().PrettyItemName,
+                PizzaBaseName = g.First().PizzaBaseName
+            }).ToList()
+        }));
+    }
+
+    if(orders.Any())
+    {
+        orders = orders.OrderBy(o => {
+            if (o.Items.Any(i => i.BumpedTimes.Count == 0))
+                return o.ActualOrderedAt;
+            
+            return o.Items.Max(i => i.BumpedTimes.Max());
+        }).ToList();
+
+        if (!showAllOrders)
+        {
+            ongoing = orders.Where(o => !CutBumpedOrders.Contains(o.OrderNumber) && !PinnedOrders.Contains(o.OrderNumber) && (DateTime.Now - o.Items.Max(i => i.BumpedTimes.Max())) <= TimeSpan.FromSeconds(Settings.OvenTime + Settings.GraceTime));
+            finished = orders.Where(o => CutBumpedOrders.Contains(o.OrderNumber) || (DateTime.Now - o.Items.Max(i => i.BumpedTimes.Max())) > TimeSpan.FromSeconds(Settings.OvenTime + Settings.GraceTime)).Reverse();
+        }
+        else
+        {
+            // Repurpose `ongoing` here so we dont need to wrap it all in an if statement
+            ongoing = orders;
+            ongoing.Reverse();
+        }
+    }
+}
+
 <PageTitle>XML Data</PageTitle>
 
 <nav class="navbar navbar-expand bg-light">
@@ -31,59 +80,24 @@
 </nav>
 
 <div class="d-grid">
+    @if (PinnedOrders.Any() && orders.Any())
+    {
+    <h4>Pinned Orders</h4>
+    <div class="d-flex flex-row overflow-auto thinScrollBar mb-4">
+    @foreach (var number in PinnedOrders)
+    {
+        var orderNumber = number;
+        var order = orders.Where(o => o.OrderNumber == orderNumber).First();
+        <Order @key=orderNumber MakelineOrder=order OnReceiptClicked=OnOrderReprint OnDismissClicked=OnOrderDismissed ShowPin=false />
+    }
+    </div>
+    }
+
     <h4>Live Orders</h4>
     <div id="liveOrders" class="d-flex flex-row overflow-auto thinScollBar mb-4">
-    @{
-        // Order by max bump time to the order that was bumped first will be first.
-        List<MakeLineOrder> orders = Orders.Where(o => o.IsBumped).ToList();
-        IEnumerable<MakeLineOrder> ongoing = new List<MakeLineOrder>();
-        IEnumerable<MakeLineOrder> finished = new List<MakeLineOrder>();
-
-        if (BumpHistory.Any())
-        {
-            orders.AddRange(BumpHistory.GroupBy(h => h.OrderNumber).Where(g => !orders.Any(o => o.OrderNumber == g.Key)).Select(g => new MakeLineOrder
-            {
-                OrderNumber = g.Key,
-                TakenBy = "Reconstructed Order",
-                TypeCode = g.First().TypeCode,
-                IsExpedited = g.Any(h => h.Description.Contains("Priority", StringComparison.InvariantCultureIgnoreCase)),
-                Items = g.GroupBySequential(i => new { i.Description, i.ToppingModifications }, i => i, (x, y) => x.Description.Equals(y.Description, StringComparison.InvariantCultureIgnoreCase) && Enumerable.SequenceEqual(x.ToppingModifications, y.ToppingModifications))
-                .Select(g => new MakeLineOrderLine{
-                    Quantity = g.Count(),
-                    Description = g.First().Description,
-                    ToppingModifications = g.First().ToppingModifications,
-                    BumpedTimes = g.Select(i => i.BumpedAtTime).ToList(),
-                    PrettyItemName = g.First().PrettyItemName,
-                    PizzaBaseName = g.First().PizzaBaseName
-                }).ToList()
-            }));
-        }
-
-        if(orders.Any())
-        {
-            orders = orders.OrderBy(o => {
-                if (o.Items.Any(i => i.BumpedTimes.Count == 0))
-                    return o.ActualOrderedAt;
-                
-                return o.Items.Max(i => i.BumpedTimes.Max());
-            }).ToList();
-
-            if (!showAllOrders)
-            {
-                ongoing = orders.Where(o => !CutBumpedOrders.Contains(o.OrderNumber) && (DateTime.Now - o.Items.Max(i => i.BumpedTimes.Max())) <= TimeSpan.FromSeconds(Settings.OvenTime + Settings.GraceTime));
-                finished = orders.Where(o => CutBumpedOrders.Contains(o.OrderNumber) || (DateTime.Now - o.Items.Max(i => i.BumpedTimes.Max())) > TimeSpan.FromSeconds(Settings.OvenTime + Settings.GraceTime)).Reverse();
-            }
-            else
-            {
-                // Repurpose `ongoing` here so we dont need to wrap it all in an if statement
-                ongoing = orders;
-                ongoing.Reverse();
-            }
-        }
-    }
     @foreach (var order in ongoing)
     {
-        <Order @key=order.OrderNumber MakelineOrder=order OnClicked=OnOrderClicked />
+        <Order @key=order.OrderNumber MakelineOrder=order OnReceiptClicked=OnOrderReprint OnDismissClicked=OnOrderDismissed OnPinClicked=OnOrderPinned />
     }
     </div>
 
@@ -91,7 +105,7 @@
     <div id="previousOrders" class="d-flex flex-row overflow-auto thinScollBar mb-4">
     @foreach (var order in finished)
     {
-        <Order @key=order.OrderNumber MakelineOrder=order />
+        <Order @key=order.OrderNumber MakelineOrder=order  ShowDismiss=false OnReceiptClicked=OnOrderReprint OnPinClicked=OnOrderPinned />
     }
     </div>
 </div>
@@ -101,6 +115,7 @@
     private List<MakeLineOrder> Orders = new();
     private List<MakeLineOrderItemHistory> BumpHistory = new();
     private List<int> CutBumpedOrders = new();
+    private List<int> PinnedOrders = new();
     private bool showAllOrders = false;
     private HashSet<DateTime> AlertedOrderNumbers = new();
 
@@ -163,9 +178,29 @@
         FetchTimer?.Dispose();
     }
 
-    private void OnOrderClicked(MakeLineOrder Order)
+    private void OnOrderDismissed(MakeLineOrder Order)
     {
+        PinnedOrders.Remove(Order.OrderNumber);
         CutBumpedOrders.Add(Order.OrderNumber);
+    }
+
+    private async Task OnOrderReprint(MakeLineOrder Order)
+    {
+        await Http.GetAsync($"api/Makeline/reprint/{Order.OrderNumber}");
+    }
+
+    private void OnOrderPinned(MakeLineOrder Order)
+    {
+        CutBumpedOrders.Remove(Order.OrderNumber);
+
+        if (PinnedOrders.Contains(Order.OrderNumber))
+        {
+            PinnedOrders.Remove(Order.OrderNumber);
+        }
+        else
+        {
+            PinnedOrders.Add(Order.OrderNumber);
+        }
     }
 
     private async Task RequestSilenceMakeline()
