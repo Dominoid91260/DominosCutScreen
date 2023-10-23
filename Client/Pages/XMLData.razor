@@ -145,6 +145,16 @@
         var newOrders = await Http.GetFromJsonAsync<IEnumerable<MakeLineOrder>>("api/Makeline/orders");
         if (newOrders != null)
         {
+            // Check first order of the day
+            if (Orders.Count == 0 && newOrders.Any())
+            {
+                // If any timed orders are due now or an ASAP internet order has come through play the sound
+                if (newOrders.Any(o => (o.IsTimedOrder && o.SavedAt >= DateTime.Now) || o.IsElectronic))
+                {
+                    await JS.InvokeVoidAsync("playOvenAlert");
+                }
+            }
+
             Orders = newOrders.ToList();
         }
         
