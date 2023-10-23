@@ -43,6 +43,32 @@
     <label>Timed Order Seconds Per Pizza (s)</label>
 </div>
 
+<!-- Quiet Time -->
+<div class="form-floating mb-1">
+    <div class="d-flex flex-row justify-content-between form-control h-auto">
+        <!-- IsEnabled -->
+        <div class="form-floating mb-1 flex-fill me-1">
+            <div class="form-control form-check form-switch h-100">
+                <input type="checkbox" class="form-check-input mx-auto" @bind="Settings.QuietTime.IsEnabled" @bind:after="OnQuietTimeEnabledChanged" />
+            </div>
+            <label class="text-nowrap">Is Enabled</label>
+        </div>
+
+        <!-- Start -->
+        <div class="form-floating mb-1 flex-fill me-1">
+            <input type="time" class="form-control" @bind="Settings.QuietTime.Start" @bind:after="OnQuietTimeStartChanged" />
+            <label>Start</label>
+        </div>
+
+        <!-- End -->
+        <div class="form-floating mb-1 flex-fill">
+            <input type="time" class="form-control" @bind="Settings.QuietTime.End" @bind:after="OnQuietTimeEndChanged" />
+            <label>Start</label>
+        </div>
+    </div>
+    <label>Quiet Time</label>
+</div>
+
 @code
 {
     private async Task OnMakelineHostChanged()
@@ -76,6 +102,21 @@
     }
 
     private async Task OnTimedOrderAlertTimeChanged()
+    {
+
+    }
+
+    private async Task OnQuietTimeEnabledChanged()
+    {
+        
+    }
+
+    private async Task OnQuietTimeStartChanged()
+    {
+
+    }
+
+    private async Task OnQuietTimeEndChanged()
     {
 
     }

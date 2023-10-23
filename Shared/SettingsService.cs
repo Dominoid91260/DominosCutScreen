@@ -2,6 +2,24 @@
 
 namespace DominosCutScreen.Shared
 {
+    public class QuietTime
+    {
+        /// <summary>
+        /// Whether or not QuietTime is enabled
+        /// </summary>
+        public bool IsEnabled { get; set; } = false;
+
+        /// <summary>
+        /// When does QuietTime start?
+        /// </summary>
+        public TimeOnly Start { get; set; }
+
+        /// <summary>
+        /// When does QuietTime end?
+        /// </summary>
+        public TimeOnly End { get; set; }
+    }
+
     public class SettingsService
     {
         #region Server
@@ -40,6 +58,11 @@ namespace DominosCutScreen.Shared
         /// and sound an alarm the order comes through within the calculated time * 1.5
         /// </summary>
         public int TimedOrderSecondsPerPizza { get; set; } = 15;
+
+        /// <summary>
+        /// When enabled, oven and timed order alerts will not sound between Start and End times.
+        /// </summary>
+        public QuietTime QuietTime { get; set; } = new();
         #endregion // Client
     }
 }

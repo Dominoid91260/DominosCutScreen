@@ -151,13 +151,13 @@
                 // If any timed orders are due now or an ASAP internet order has come through play the sound
                 if (newOrders.Any(o => (o.IsTimedOrder && o.SavedAt >= DateTime.Now) || o.IsElectronic))
                 {
-                    await JS.InvokeVoidAsync("playOvenAlert");
+                    await PlayAlarm();
                 }
             }
 
             Orders = newOrders.ToList();
         }
-        
+
         var sortedBump = BumpHistory.GroupBy(h => h.BumpedAtTime).Select(g => g.Key).OrderBy(d => d).ToList();
         for (var index = 0; index < sortedBump.Count; ++index)
         {
@@ -174,10 +174,10 @@
                 (currTime - last).TotalSeconds >= Settings.AlertInterval &&
                 !AlertedOrderNumbers.Contains(currTime)
                 )
-                {
-                    AlertedOrderNumbers.Add(currTime);
-                    await JS.InvokeVoidAsync("playOvenAlert");
-                }
+            {
+                AlertedOrderNumbers.Add(currTime);
+                await PlayAlarm();
+            }
         }
 
         await InvokeAsync(StateHasChanged);
@@ -216,5 +216,17 @@
     private async Task RequestSilenceMakeline()
     {
         await Http.GetAsync("api/Makeline/silence");
+    }
+
+    private async Task PlayAlarm()
+    {
+        if (Settings.QuietTime.IsEnabled)
+        {
+            var tod = TimeOnly.FromTimeSpan(DateTime.Now.TimeOfDay);
+            if (tod >= Settings.QuietTime.Start && tod < Settings.QuietTime.End)
+                return;
+        }
+
+        await JS.InvokeVoidAsync("playOvenAlert");
     }
 }
