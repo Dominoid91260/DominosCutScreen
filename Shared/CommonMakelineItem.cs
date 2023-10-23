@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
@@ -64,35 +65,40 @@ namespace DominosCutScreen.Shared
         /// </summary>
         private void ParsePostBakes()
         {
-            var postBakeIndex = PrettyItemName.IndexOfAny(new char[] { '+', '*' });
-
-            // No post bakes, so do nothing
-            if (postBakeIndex == -1)
-                return;
-
-            var postBakeStr = PrettyItemName[postBakeIndex..].Replace("+", string.Empty);
-            PrettyItemName = PrettyItemName[0..postBakeIndex];
             var postbakes = new List<MakeLineToppingModification>();
-            
-            foreach (var (code, tm) in MakelineOverrideManager.PostBakeOverrides.OrderByDescending(pair => pair.Key.Length))
+
+            foreach (var str in PrettyItemName.Split(' '))
             {
-                if (postBakeStr.Contains(code, StringComparison.InvariantCultureIgnoreCase))
+                var postBakeIndex = str.IndexOfAny(new char[] { '+', '*' });
+
+                // No post bakes, so do nothing
+                if (postBakeIndex == -1)
+                    continue;
+
+                var postBakeStr = str[postBakeIndex..].Replace("+", string.Empty);
+
+                foreach (var (code, tm) in MakelineOverrideManager.PostBakeOverrides.OrderByDescending(pair => pair.Key.Length))
                 {
-                    postBakeStr = postBakeStr.Replace(code, string.Empty, StringComparison.InvariantCultureIgnoreCase);
-                    postbakes.Add(tm);
+                    if (postBakeStr.Contains(code, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        postBakeStr = postBakeStr.Replace(code, string.Empty, StringComparison.InvariantCultureIgnoreCase);
+                        postbakes.Add(tm);
+                    }
+                }
+
+                // Check if there is still postbake codes left
+                if (postBakeStr.Length > 0)
+                {
+                    postbakes.Add(new MakeLineToppingModification
+                    {
+                        ToppingCode = "UKN",
+                        ToppingDescription = $"Post bake: {postBakeStr}",
+                        PizzaDistribution = 87
+                    });
                 }
             }
 
-            // Check if there is still postbake codes left
-            if (postBakeStr.Length > 0)
-            {
-                postbakes.Add(new MakeLineToppingModification
-                {
-                    ToppingCode = "UKN",
-                    ToppingDescription = $"Post bake: {postBakeStr}",
-                    PizzaDistribution = 87
-                });
-            }
+            PrettyItemName = Regex.Replace(PrettyItemName, @"[\*]|(:?\+[\w]+)+\b", string.Empty);
 
             var count = postbakes.Count();
             for (var i = 0; i < count; ++i)
