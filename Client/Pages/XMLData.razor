@@ -146,10 +146,15 @@
         if (newOrders != null)
         {
             // Check first order of the day
-            if (Orders.Count == 0 && newOrders.Any())
+            // Grab all current live orders and inversely order by what time they appeared on the makeline. Oldest first
+            var liveOrders = newOrders.Where(o => o.IsLive()).OrderByDescending(o => o.IsTimedOrder ? o.SavedAt : o.ActualOrderedAt);
+            if (Orders.Count == 0 && liveOrders.Any())
             {
-                // If any timed orders are due now or an ASAP internet order has come through play the sound
-                if (newOrders.Any(o => (o.IsTimedOrder && o.SavedAt >= DateTime.Now) || o.IsElectronic))
+                var first = liveOrders.First();
+
+                // If the first order is an internet order or timed, play the sound
+                // ASAP orders taken by staff are expected to be communicated
+                if (first.IsTimedOrder || first.IsElectronic)
                 {
                     await PlayAlarm();
                 }

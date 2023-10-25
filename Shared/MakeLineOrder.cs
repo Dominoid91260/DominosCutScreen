@@ -137,6 +137,7 @@ namespace DominosCutScreen.Shared
 
         /// <summary>
         /// When the order was actually sent to pulse.
+        /// For timed orders, this is the time it will appear on the makeline
         /// </summary>
         [XmlElement]
         public DateTime SavedAt { get; set; }
@@ -198,5 +199,16 @@ namespace DominosCutScreen.Shared
         }
 
         // OrderUnhiddenTime
+
+        public bool IsLive()
+        {
+            if (IsBumped)
+                return false;
+
+            if (IsTimedOrder)
+                return SavedAt >= DateTime.Now;
+
+            return ActualOrderedAt >= DateTime.Now;
+        }
     }
 }
