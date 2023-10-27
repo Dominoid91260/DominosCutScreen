@@ -134,7 +134,7 @@
 
     private async Task OnQuietTimeEndChanged()
     {
-        await Http.PostAsJsonAsync("api/Settings/QuietTime/Start", Settings.QuietTime.End);
+        await Http.PostAsJsonAsync("api/Settings/QuietTime/End", Settings.QuietTime.End);
     }
 
     private async Task OnTimedOrderAlarmEnabledChanged()
@@ -144,11 +144,11 @@
 
     private async Task OnTimedOrderAlarmSecondsPerPizzaChanged()
     {
-        await Http.PostAsJsonAsync("api/Settings/TimedOrderAlarm/Enabled", Settings.TimedOrderAlarm.SecondsPerPizza);
+        await Http.PostAsJsonAsync("api/Settings/TimedOrderAlarm/SecondsPerPizza", Settings.TimedOrderAlarm.SecondsPerPizza);
     }
 
     private async Task OnTimedOrderAlarmMinPizzaThresholdChanged()
     {
-        await Http.PostAsJsonAsync("api/Settings/TimedOrderAlarm/Enabled", Settings.TimedOrderAlarm.MinPizzaThreshold);
+        await Http.PostAsJsonAsync("api/Settings/TimedOrderAlarm/MinPizzaThreshold", Settings.TimedOrderAlarm.MinPizzaThreshold);
     }
 }
