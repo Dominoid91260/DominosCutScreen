@@ -63,6 +63,32 @@
     <label>Quiet Time</label>
 </div>
 
+<!-- Timed Order Alarm -->
+<div class="form-floating mb-1">
+    <div class="d-flex flex-row justify-content-between form-control h-auto">
+        <!-- IsEnabled -->
+        <div class="form-floating col me-1">
+            <div class="form-control form-check form-switch">
+                <input type="checkbox" class="form-check-input mx-auto" @bind="Settings.TimedOrderAlarm.IsEnabled" @bind:after="OnTimedOrderAlarmEnabledChanged" />
+            </div>
+            <label class="text-nowrap">Is Enabled</label>
+        </div>
+
+        <!-- SecondsPerPizza -->
+        <div class="form-floating col me-1">
+            <InputNumber class="form-control" @bind-Value="Settings.TimedOrderAlarm.SecondsPerPizza" @bind-Value:after="OnTimedOrderAlarmSecondsPerPizzaChanged" />
+            <label>Pizza Time</label>
+        </div>
+
+        <!-- MinPizzaThreshold-->
+        <div class="form-floating col">
+            <InputNumber class="form-control" @bind-Value="Settings.TimedOrderAlarm.MinPizzaThreshold" @bind-Value:after="OnTimedOrderAlarmMinPizzaThresholdChanged" />
+            <label class="text-nowrap">Pizza Threshold</label>
+        </div>
+    </div>
+    <label>Timed Order Alarm</label>
+</div>
+
 @code
 {
     private async Task OnMakelineHostChanged()
