@@ -1,4 +1,5 @@
 ﻿@using DominosCutScreen.Shared;
+@inject HttpClient Http
 @inject SettingsService Settings
 
 <!-- Makeline Host -->
@@ -93,51 +94,61 @@
 {
     private async Task OnMakelineHostChanged()
     {
-
+        await Http.PostAsJsonAsync("api/Settings/MakelineServer", Settings.MakelineServer);
     }
 
     private async Task OnMakelineCodeChanged()
     {
-
+        await Http.PostAsJsonAsync("api/Settings/MakelineCode", Settings.MakelineCode);
     }
 
     private async Task OnMakelineFetchTimeChanged()
     {
-
+        await Http.PostAsJsonAsync("api/Settings/FetchInterval", Settings.FetchInterval);
     }
 
     private async Task OnOvenTimeChanged()
     {
-
+        await Http.PostAsJsonAsync("api/Settings/OvenTime", Settings.OvenTime);
     }
 
     private async Task OnOvenGraceTimeChanged()
     {
-
+        await Http.PostAsJsonAsync("api/Settings/GraceTime", Settings.GraceTime);
     }
 
     private async Task OnOvenAlertGapTimeChanged()
     {
-
-    }
-
-    private async Task OnTimedOrderAlertTimeChanged()
-    {
-
+        await Http.PostAsJsonAsync("api/Settings/AlertInterval", Settings.AlertInterval);
     }
 
     private async Task OnQuietTimeEnabledChanged()
     {
-        
+        await Http.PostAsJsonAsync("api/Settings/QuietTime/Enabled", Settings.QuietTime.IsEnabled);
     }
 
     private async Task OnQuietTimeStartChanged()
     {
-
+        await Http.PostAsJsonAsync("api/Settings/QuietTime/Start", Settings.QuietTime.Start);
     }
 
     private async Task OnQuietTimeEndChanged()
     {
+        await Http.PostAsJsonAsync("api/Settings/QuietTime/Start", Settings.QuietTime.End);
+    }
 
+    private async Task OnTimedOrderAlarmEnabledChanged()
+    {
+        await Http.PostAsJsonAsync("api/Settings/TimedOrderAlarm/Enabled", Settings.TimedOrderAlarm.IsEnabled);
+    }
+
+    private async Task OnTimedOrderAlarmSecondsPerPizzaChanged()
+    {
+        await Http.PostAsJsonAsync("api/Settings/TimedOrderAlarm/Enabled", Settings.TimedOrderAlarm.SecondsPerPizza);
+    }
+
+    private async Task OnTimedOrderAlarmMinPizzaThresholdChanged()
+    {
+        await Http.PostAsJsonAsync("api/Settings/TimedOrderAlarm/Enabled", Settings.TimedOrderAlarm.MinPizzaThreshold);
     }
 }
