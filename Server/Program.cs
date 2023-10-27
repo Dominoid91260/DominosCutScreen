@@ -11,6 +11,10 @@ namespace DominosCutScreen
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Logging
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();
+
             // Add services to the container.
 
             builder.Services.AddControllersWithViews();
@@ -39,7 +43,6 @@ namespace DominosCutScreen
             app.UseStaticFiles();
 
             app.UseRouting();
-
 
             app.MapRazorPages();
             app.MapControllers();

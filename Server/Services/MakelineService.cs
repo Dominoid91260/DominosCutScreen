@@ -1,7 +1,5 @@
 ﻿using DominosCutScreen.Shared;
 
-using System.Collections.ObjectModel;
-using System.Net;
 using System.Xml.Serialization;
 
 namespace DominosCutScreen.Server.Services
@@ -9,6 +7,7 @@ namespace DominosCutScreen.Server.Services
     public class MakelineService : BackgroundService
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogger<MakelineService> _logger;
         private readonly SettingsService _settings;
         private readonly object _lock = new();
         private DateTime _lastMakelineCheck;
@@ -43,7 +42,7 @@ namespace DominosCutScreen.Server.Services
                 var response = await Client.GetAsync(fullPath);
                 if (!response.IsSuccessStatusCode)
                 {
-                    Console.Error.WriteLine($"MakelineService.MakeHTTPRequest failed: {fullPath} | {response.ReasonPhrase}");
+                    _logger.LogError("MakelineService.MakeHTTPRequest failed: {path} | {reason}", fullPath, response.ReasonPhrase);
                     return null;
                 }
 
@@ -51,7 +50,7 @@ namespace DominosCutScreen.Server.Services
             }
             catch (Exception e) when (e is HttpRequestException || e is TaskCanceledException)
             {
-                Console.Error.WriteLine($"MakelineService.MakeHTTPRequest failed: {fullPath} | {e.Message}");
+                _logger.LogError("MakelineService.MakeHTTPRequest failed: {path} | {message}", fullPath, e.Message);
                 return null;
             }
         }
@@ -66,9 +65,10 @@ namespace DominosCutScreen.Server.Services
             return DeserializeXML<T>(result);
         }
 
-        public MakelineService(IHttpClientFactory httpClientFactory, SettingsService Settings)
+        public MakelineService(IHttpClientFactory httpClientFactory, ILogger<MakelineService> logger, SettingsService Settings)
         {
             _httpClientFactory = httpClientFactory;
+            _logger = logger;
             _settings = Settings;
             Orders = new List<MakeLineOrder>();
             BumpHistory = new List<MakeLineOrderItemHistory>();
@@ -85,46 +85,10 @@ namespace DominosCutScreen.Server.Services
             while (!stoppingToken.IsCancellationRequested)
             {
                 // Bump History
-                var bumpHistory = await FetchAndDeserialize<ArrayOfMakeLineOrderItemHistory>(client, "orderHistory");
-                if (bumpHistory != null)
-                {
-                    lock (_lock)
-                    {
-                        BumpHistory = bumpHistory.Items;
-
-                        foreach (var item in BumpHistory.Where(i => i.PrettyItemName == null))
-                        {
-                            item.OnDeserializedMethod();
-                        }
-                    }
-                }
+                await FetchBumpHistory(client);
 
                 // Orders
-                var orders = await FetchAndDeserialize<ArrayOfMakeLineOrder>(client, $"orders/updates/{_lastMakelineCheck:s}");
-                _lastMakelineCheck = DateTime.Now;
-                if (orders != null)
-                {
-                    lock (_lock)
-                    {
-                        foreach (var order in orders.Orders)
-                        {
-                            foreach (var item in order.Items)
-                            {
-                                // Sometimes the makeline will report no bump times even though the order is bumped
-                                if (order.IsBumped && item.BumpedTimes.Count == 0)
-                                {
-                                    item.BumpedTimes = Enumerable.Range(0, item.Quantity).Select(n => order.ActualOrderedAt).ToList();
-                                }
-
-                                if (item.PrettyItemName == null)
-                                {
-                                    item.OnDeserializedMethod();
-                                }
-                            }
-                        }
-                        Orders = Orders.Concat(orders.Orders).GroupBy(o => o.OrderNumber).Select(g => g.Last());
-                    }
-                }
+                await FetchOrderData(client);
 
                 // Clear `Orders` and `BumpHistory` every day at 6am
                 // A much better solution would be making a cronjob that just restarts this server every day at 6am though...
@@ -135,6 +99,52 @@ namespace DominosCutScreen.Server.Services
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(_settings.FetchInterval), stoppingToken);
+            }
+        }
+
+        private async Task FetchBumpHistory(HttpClient client)
+        {
+            var bumpHistory = await FetchAndDeserialize<ArrayOfMakeLineOrderItemHistory>(client, "orderHistory");
+            if (bumpHistory != null)
+            {
+                lock (_lock)
+                {
+                    BumpHistory = bumpHistory.Items;
+
+                    foreach (var item in BumpHistory.Where(i => i.PrettyItemName == null))
+                    {
+                        item.OnDeserializedMethod();
+                    }
+                }
+            }
+        }
+
+        private async Task FetchOrderData(HttpClient client)
+        {
+            var orders = await FetchAndDeserialize<ArrayOfMakeLineOrder>(client, $"orders/updates/{_lastMakelineCheck:s}");
+            _lastMakelineCheck = DateTime.Now;
+            if (orders != null)
+            {
+                lock (_lock)
+                {
+                    foreach (var order in orders.Orders)
+                    {
+                        foreach (var item in order.Items)
+                        {
+                            // Sometimes the makeline will report no bump times even though the order is bumped
+                            if (order.IsBumped && item.BumpedTimes.Count == 0)
+                            {
+                                item.BumpedTimes = Enumerable.Range(0, item.Quantity).Select(n => order.ActualOrderedAt).ToList();
+                            }
+
+                            if (item.PrettyItemName == null)
+                            {
+                                item.OnDeserializedMethod();
+                            }
+                        }
+                    }
+                    Orders = Orders.Concat(orders.Orders).GroupBy(o => o.OrderNumber).Select(g => g.Last());
+                }
             }
         }
     }
