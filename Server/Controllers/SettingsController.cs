@@ -37,7 +37,7 @@ namespace DominosCutScreen.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> MakelineCode(int makelineCode)
+        public async Task<IActionResult> MakelineCode([FromBody] int makelineCode)
         {
             _logger.LogInformation("Setting MakelineCode to {code}", makelineCode);
             _context.GetSettings().MakelineCode = makelineCode;
@@ -47,7 +47,7 @@ namespace DominosCutScreen.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> OvenTime(int ovenTime)
+        public async Task<IActionResult> OvenTime([FromBody] int ovenTime)
         {
             _logger.LogInformation("Setting OvenTime to {time}", ovenTime);
             _context.GetSettings().OvenTime = ovenTime;
@@ -57,7 +57,7 @@ namespace DominosCutScreen.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GraceTime(int graceTime)
+        public async Task<IActionResult> GraceTime([FromBody] int graceTime)
         {
             _logger.LogInformation("Setting GraceTime to {time}", graceTime);
             _context.GetSettings().GraceTime = graceTime;
@@ -67,7 +67,7 @@ namespace DominosCutScreen.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AlertInterval(int alertInterval)
+        public async Task<IActionResult> AlertInterval([FromBody] int alertInterval)
         {
             _logger.LogInformation("Setting AlertInterval to {time}", alertInterval);
             _context.GetSettings().AlertInterval = alertInterval;
@@ -77,7 +77,7 @@ namespace DominosCutScreen.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> FetchInterval(int fetchInterval)
+        public async Task<IActionResult> FetchInterval([FromBody] int fetchInterval)
         {
             _logger.LogInformation("Setting FetchInterval to {time}", fetchInterval);
             _context.GetSettings().FetchInterval = fetchInterval;
@@ -87,7 +87,7 @@ namespace DominosCutScreen.Server.Controllers
         }
 
         [HttpPost("QuietTime/Enabled")]
-        public async Task<IActionResult> QuietTimeEnabled(bool isEnabled)
+        public async Task<IActionResult> QuietTimeEnabled([FromBody] bool isEnabled)
         {
             _logger.LogInformation("Setting QuietTime Enabled to {enabled}", isEnabled);
             _context.GetSettings().QuietTime.IsEnabled = isEnabled;
@@ -97,7 +97,7 @@ namespace DominosCutScreen.Server.Controllers
         }
 
         [HttpPost("QuietTime/Start")]
-        public async Task<IActionResult> QuietTimeStart(TimeOnly start)
+        public async Task<IActionResult> QuietTimeStart([FromBody] TimeOnly start)
         {
             _logger.LogInformation("Setting QuietTime Start to {start}", start);
             _context.GetSettings().QuietTime.Start = start;
@@ -107,7 +107,7 @@ namespace DominosCutScreen.Server.Controllers
         }
 
         [HttpPost("QuietTime/End")]
-        public async Task<IActionResult> QuietTimeEnd(TimeOnly end)
+        public async Task<IActionResult> QuietTimeEnd([FromBody] TimeOnly end)
         {
             _logger.LogInformation("Setting QuietTime End to {end}", end);
             _context.GetSettings().QuietTime.End = end;
@@ -117,7 +117,7 @@ namespace DominosCutScreen.Server.Controllers
         }
 
         [HttpPost("TimedOrderAlarm/Enabled")]
-        public async Task<IActionResult> TimedOrderAlarmEnabled(bool isEnabled)
+        public async Task<IActionResult> TimedOrderAlarmEnabled([FromBody] bool isEnabled)
         {
             _logger.LogInformation("Setting TimedOrder Enabled to {enabled}", isEnabled);
             _context.GetSettings().TimedOrderAlarm.IsEnabled = isEnabled;
@@ -127,7 +127,7 @@ namespace DominosCutScreen.Server.Controllers
         }
 
         [HttpPost("TimedOrderAlarm/SecondsPerPizza")]
-        public async Task<IActionResult> TimedOrderAlarmSecondsPerPizza(int secondsPerPizza)
+        public async Task<IActionResult> TimedOrderAlarmSecondsPerPizza([FromBody] int secondsPerPizza)
         {
             _logger.LogInformation("Setting TimedOrder SecondsPerPizza to {time}", secondsPerPizza);
             _context.GetSettings().TimedOrderAlarm.SecondsPerPizza= secondsPerPizza;
@@ -137,7 +137,7 @@ namespace DominosCutScreen.Server.Controllers
         }
 
         [HttpPost("TimedOrderAlarm/MinPizzaThreshold")]
-        public async Task<IActionResult> TimedOrderAlarmMinPizzaThreshold(int minPizzaThreshold)
+        public async Task<IActionResult> TimedOrderAlarmMinPizzaThreshold([FromBody] int minPizzaThreshold)
         {
             _logger.LogInformation("Setting TimedOrder MinPizzaThreshold to {threshold}", minPizzaThreshold);
             _context.GetSettings().TimedOrderAlarm.MinPizzaThreshold = minPizzaThreshold;
