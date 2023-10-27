@@ -137,86 +137,10 @@
 
     protected async Task GetData()
     {
-        var newBumpHistory = await Http.GetFromJsonAsync<IEnumerable<MakeLineOrderItemHistory>>("api/Makeline/bump");
-        if (newBumpHistory != null)
-        {
-            BumpHistory = newBumpHistory.ToList();
-        }
-
-        var newOrders = await Http.GetFromJsonAsync<IEnumerable<MakeLineOrder>>("api/Makeline/orders");
-        if (newOrders != null)
-        {
-            // Check first order of the day
-            // Grab all current live orders and inversely order by what time they appeared on the makeline. Oldest first
-            var liveOrders = newOrders.Where(o => o.IsLive()).OrderByDescending(o => o.IsTimedOrder ? o.SavedAt : o.ActualOrderedAt);
-            if (Orders.Count == 0 && liveOrders.Any())
-            {
-                var first = liveOrders.First();
-
-                // If the first order is an internet order or timed, play the sound
-                // ASAP orders taken by staff are expected to be communicated
-                if (first.IsTimedOrder || first.IsElectronic)
-                {
-                    await PlayAlarm();
-                }
-            }
-
-            Orders = newOrders.ToList();
-
-            if (Settings.TimedOrderAlarm.IsEnabled && Orders.Any(o => o.IsTimedOrder))
-            {
-                bool shouldPlay = false;
-                // Find all timed orders due to appear before we have time to make them.
-                // We iterate over all of them before playing the sound so we dont play
-                // the sound multiple times.
-                foreach (var order in Orders.Where(o => o.IsTimedOrder))
-                {
-                    var qtyToMake = order.Items.Sum(i => i.Quantity);
-
-                    if (qtyToMake < Settings.TimedOrderAlarm.MinPizzaThreshold)
-                        continue;
-
-                    var timeToMake = qtyToMake * Settings.TimedOrderAlarm.SecondsPerPizza;
-
-                    // If the order is going to appear on screen before we have time to make it
-                    // play the alarm
-                    if (order.SavedAt <= DateTime.Now + TimeSpan.FromSeconds(timeToMake))
-                    {
-                        shouldPlay = true;
-                        TimedOrderAlerts.Add(order.OrderNumber);
-                    }
-                }
-
-                if (shouldPlay)
-                {
-                    /// @TODO play different alarm
-                    await PlayAlarm();
-                }
-            }
-        }
-
-        var sortedBump = BumpHistory.GroupBy(h => h.BumpedAtTime).Select(g => g.Key).OrderBy(d => d).ToList();
-        for (var index = 0; index < sortedBump.Count; ++index)
-        {
-            var currTime = sortedBump[index];
-            var expectedAlertTime = currTime.AddSeconds(Settings.OvenTime);
-            var cutOff = currTime.AddSeconds(Settings.OvenTime + Settings.GraceTime);
-
-            if (!(DateTime.Now >= expectedAlertTime && DateTime.Now <= cutOff))
-                continue;
-
-            var last = (index == 0) ? DateTime.Now.Date : sortedBump[index - 1];
-
-            if (
-                (currTime - last).TotalSeconds >= Settings.AlertInterval &&
-                !AlertedOrderNumbers.Contains(currTime)
-                )
-            {
-                AlertedOrderNumbers.Add(currTime);
-                await PlayAlarm();
-            }
-        }
-
+        await FetchBumpHistory();
+        await FetchOrderData();
+        await CheckTimedOrders();
+        await CheckOvenTimer();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -265,5 +189,97 @@
         }
 
         await JS.InvokeVoidAsync("playOvenAlert");
+    }
+
+    private async Task FetchBumpHistory()
+    {
+        var newBumpHistory = await Http.GetFromJsonAsync<IEnumerable<MakeLineOrderItemHistory>>("api/Makeline/bump");
+        if (newBumpHistory == null)
+            return;
+
+        BumpHistory = newBumpHistory.ToList();
+    }
+
+    private async Task FetchOrderData()
+    {
+        var newOrders = await Http.GetFromJsonAsync<IEnumerable<MakeLineOrder>>("api/Makeline/orders");
+        if (newOrders == null)
+            return;
+
+        // Check first order of the day
+        // Grab all current live orders and inversely order by what time they appeared on the makeline. Oldest first
+        var liveOrders = newOrders.Where(o => o.IsLive()).OrderByDescending(o => o.IsTimedOrder ? o.SavedAt : o.ActualOrderedAt);
+        if (Orders.Count == 0 && liveOrders.Any())
+        {
+            var first = liveOrders.First();
+
+            // If the first order is an internet order or timed, play the sound
+            // ASAP orders taken by staff are expected to be communicated
+            if (first.IsTimedOrder || first.IsElectronic)
+            {
+                await PlayAlarm();
+            }
+        }
+
+        Orders = newOrders.ToList();
+    }
+
+    private async Task CheckOvenTimer()
+    {
+        var sortedBump = BumpHistory.GroupBy(h => h.BumpedAtTime).Select(g => g.Key).OrderBy(d => d).ToList();
+        for (var index = 0; index < sortedBump.Count; ++index)
+        {
+            var currTime = sortedBump[index];
+            var expectedAlertTime = currTime.AddSeconds(Settings.OvenTime);
+            var cutOff = currTime.AddSeconds(Settings.OvenTime + Settings.GraceTime);
+
+            if (!(DateTime.Now >= expectedAlertTime && DateTime.Now <= cutOff))
+                continue;
+
+            var last = (index == 0) ? DateTime.Now.Date : sortedBump[index - 1];
+
+            if (
+                (currTime - last).TotalSeconds >= Settings.AlertInterval &&
+                !AlertedOrderNumbers.Contains(currTime)
+                )
+            {
+                AlertedOrderNumbers.Add(currTime);
+                await PlayAlarm();
+            }
+        }
+    }
+
+    private async Task CheckTimedOrders()
+    {
+        if (!Settings.TimedOrderAlarm.IsEnabled || !Orders.Any(o => o.IsTimedOrder))
+            return;
+
+        bool shouldPlay = false;
+        // Find all timed orders due to appear before we have time to make them.
+        // We iterate over all of them before playing the sound so we dont play
+        // the sound multiple times.
+        foreach (var order in Orders.Where(o => o.IsTimedOrder))
+        {
+            var qtyToMake = order.Items.Sum(i => i.Quantity);
+
+            if (qtyToMake < Settings.TimedOrderAlarm.MinPizzaThreshold)
+                continue;
+
+            var timeToMake = qtyToMake * Settings.TimedOrderAlarm.SecondsPerPizza;
+
+            // If the order is going to appear on screen before we have time to make it
+            // play the alarm
+            if (order.SavedAt <= DateTime.Now + TimeSpan.FromSeconds(timeToMake))
+            {
+                shouldPlay = true;
+                TimedOrderAlerts.Add(order.OrderNumber);
+            }
+        }
+
+        if (shouldPlay)
+        {
+            /// @TODO play different alarm
+            await PlayAlarm();
+        }
     }
 }
