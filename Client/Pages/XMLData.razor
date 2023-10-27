@@ -118,6 +118,7 @@
     private List<int> PinnedOrders = new();
     private bool showAllOrders = false;
     private HashSet<DateTime> AlertedOrderNumbers = new();
+    private HashSet<int> TimedOrderAlerts = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -161,6 +162,37 @@
             }
 
             Orders = newOrders.ToList();
+
+            if (Settings.TimedOrderAlarm.IsEnabled && Orders.Any(o => o.IsTimedOrder))
+            {
+                bool shouldPlay = false;
+                // Find all timed orders due to appear before we have time to make them.
+                // We iterate over all of them before playing the sound so we dont play
+                // the sound multiple times.
+                foreach (var order in Orders.Where(o => o.IsTimedOrder))
+                {
+                    var qtyToMake = order.Items.Sum(i => i.Quantity);
+
+                    if (qtyToMake < Settings.TimedOrderAlarm.MinPizzaThreshold)
+                        continue;
+
+                    var timeToMake = qtyToMake * Settings.TimedOrderAlarm.SecondsPerPizza;
+
+                    // If the order is going to appear on screen before we have time to make it
+                    // play the alarm
+                    if (order.SavedAt <= DateTime.Now + TimeSpan.FromSeconds(timeToMake))
+                    {
+                        shouldPlay = true;
+                        TimedOrderAlerts.Add(order.OrderNumber);
+                    }
+                }
+
+                if (shouldPlay)
+                {
+                    /// @TODO play different alarm
+                    await PlayAlarm();
+                }
+            }
         }
 
         var sortedBump = BumpHistory.GroupBy(h => h.BumpedAtTime).Select(g => g.Key).OrderBy(d => d).ToList();

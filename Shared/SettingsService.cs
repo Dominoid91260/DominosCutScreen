@@ -20,6 +20,26 @@ namespace DominosCutScreen.Shared
         public TimeOnly End { get; set; }
     }
 
+    public class TimedOrderAlarm
+    {
+        /// <summary>
+        /// Whether or not the Timed Order Alarm is enabled
+        /// </summary>
+        public bool IsEnabled { get; set; } = false;
+
+        /// <summary>
+        /// How many seconds to make each pizza. Used to calculate how long a timed order should take to make
+        /// and sound an alarm the order comes through within the calculated time * 1.5
+        /// </summary>
+        public int SecondsPerPizza { get; set; } = 15;
+
+        /// <summary>
+        /// How many pizzas should be in the timed order before triggering the alarm.
+        /// Set to 0 to trigger for all timed orders
+        /// </summary>
+        public int MinPizzaThreshold { get; set; } = 7;
+    }
+
     public class SettingsService
     {
         #region Server
@@ -54,15 +74,14 @@ namespace DominosCutScreen.Shared
         public int FetchInterval { get; set; } = 5;
 
         /// <summary>
-        /// How many seconds to make each pizza. Used to calculate how long a timed order should take to make
-        /// and sound an alarm the order comes through within the calculated time * 1.5
-        /// </summary>
-        public int TimedOrderSecondsPerPizza { get; set; } = 15;
-
-        /// <summary>
         /// When enabled, oven and timed order alerts will not sound between Start and End times.
         /// </summary>
         public QuietTime QuietTime { get; set; } = new();
+
+        /// <summary>
+        /// When enabled, timed orders who's calculated time to make exceeds the current lead time will play an alarm.
+        /// </summary>
+        public TimedOrderAlarm TimedOrderAlarm { get; set; } = new();
         #endregion // Client
     }
 }
