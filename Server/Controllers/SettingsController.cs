@@ -86,7 +86,7 @@ namespace DominosCutScreen.Server.Controllers
             return Ok();
         }
 
-        [HttpPost("QuietTime/Enabled")]
+        [HttpPost("/api/[controller]/QuietTime/Enabled")]
         public async Task<IActionResult> QuietTimeEnabled([FromBody] bool isEnabled)
         {
             _logger.LogInformation("Setting QuietTime Enabled to {enabled}", isEnabled);
@@ -96,7 +96,7 @@ namespace DominosCutScreen.Server.Controllers
             return Ok();
         }
 
-        [HttpPost("QuietTime/Start")]
+        [HttpPost("/api/[controller]/QuietTime/Start")]
         public async Task<IActionResult> QuietTimeStart([FromBody] TimeOnly start)
         {
             _logger.LogInformation("Setting QuietTime Start to {start}", start);
@@ -106,7 +106,7 @@ namespace DominosCutScreen.Server.Controllers
             return Ok();
         }
 
-        [HttpPost("QuietTime/End")]
+        [HttpPost("/api/[controller]/QuietTime/End")]
         public async Task<IActionResult> QuietTimeEnd([FromBody] TimeOnly end)
         {
             _logger.LogInformation("Setting QuietTime End to {end}", end);
@@ -116,7 +116,7 @@ namespace DominosCutScreen.Server.Controllers
             return Ok();
         }
 
-        [HttpPost("TimedOrderAlarm/Enabled")]
+        [HttpPost("/api/[controller]/TimedOrderAlarm/Enabled")]
         public async Task<IActionResult> TimedOrderAlarmEnabled([FromBody] bool isEnabled)
         {
             _logger.LogInformation("Setting TimedOrder Enabled to {enabled}", isEnabled);
@@ -126,7 +126,7 @@ namespace DominosCutScreen.Server.Controllers
             return Ok();
         }
 
-        [HttpPost("TimedOrderAlarm/SecondsPerPizza")]
+        [HttpPost("/api/[controller]/TimedOrderAlarm/SecondsPerPizza")]
         public async Task<IActionResult> TimedOrderAlarmSecondsPerPizza([FromBody] int secondsPerPizza)
         {
             _logger.LogInformation("Setting TimedOrder SecondsPerPizza to {time}", secondsPerPizza);
@@ -136,7 +136,7 @@ namespace DominosCutScreen.Server.Controllers
             return Ok();
         }
 
-        [HttpPost("TimedOrderAlarm/MinPizzaThreshold")]
+        [HttpPost("/api/[controller]/TimedOrderAlarm/MinPizzaThreshold")]
         public async Task<IActionResult> TimedOrderAlarmMinPizzaThreshold([FromBody] int minPizzaThreshold)
         {
             _logger.LogInformation("Setting TimedOrder MinPizzaThreshold to {threshold}", minPizzaThreshold);
