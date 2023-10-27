@@ -3,12 +3,6 @@ using DominosCutScreen.Shared;
 
 using Microsoft.AspNetCore.Mvc;
 
-using System;
-using System.Diagnostics;
-using System.Text;
-using System.Transactions;
-using System.Xml.Serialization;
-
 namespace DominosCutScreen.Server.Controllers
 {
     [Route("api/[controller]")]
@@ -16,9 +10,11 @@ namespace DominosCutScreen.Server.Controllers
     public class MakelineController : ControllerBase
     {
         private readonly SettingsService _settings;
+        private readonly ILogger<MakelineController> _logger;
 
-        public MakelineController(SettingsService settings)
+        public MakelineController(ILogger<MakelineController> logger, SettingsService settings)
         {
+            _logger = logger;
             _settings = settings;
         }
 
@@ -58,11 +54,11 @@ namespace DominosCutScreen.Server.Controllers
                 if (response.IsSuccessStatusCode)
                     return Ok();
 
-                Console.Error.WriteLine($"MakelineController.SilenceMakeline failed: {response.ReasonPhrase}");
+                _logger.LogError("MakelineController.SilenceMakeline failed: {reason}", response.ReasonPhrase);
             }
             catch (HttpRequestException e)
             {
-                Console.Error.WriteLine($"MakelineController.SilenceMakeline failed: {e.Message}");
+                _logger.LogError("MakelineController.SilenceMakeline failed: {reason}", e.Message);
             }
 
             return BadRequest();
@@ -78,11 +74,11 @@ namespace DominosCutScreen.Server.Controllers
                 if (response.IsSuccessStatusCode)
                     return Ok();
 
-                Console.Error.WriteLine($"MakelineController.ReprintOrderReceipt failed: {response.ReasonPhrase}");
+                _logger.LogError("MakelineController.ReprintOrderReceipt failed: {reason}", response.ReasonPhrase);
             }
             catch (HttpRequestException e)
             {
-                Console.Error.WriteLine($"MakelineController.ReprintOrderReceipt failed: {e.Message}");
+                _logger.LogError("MakelineController.ReprintOrderReceipt failed: {reason}", e.Message);
             }
 
             return BadRequest();
