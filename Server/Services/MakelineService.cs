@@ -1,4 +1,5 @@
-﻿using DominosCutScreen.Shared;
+﻿using DominosCutScreen.Server.Models;
+using DominosCutScreen.Shared;
 
 using System.Xml.Serialization;
 
@@ -8,7 +9,7 @@ namespace DominosCutScreen.Server.Services
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<MakelineService> _logger;
-        private readonly SettingsService _settings;
+        private readonly IServiceProvider _serviceProvider;
         private readonly object _lock = new();
         private DateTime _lastMakelineCheck;
 
@@ -36,7 +37,10 @@ namespace DominosCutScreen.Server.Services
 
         private async Task<string?> MakeHTTPRequest(HttpClient Client, string Path)
         {
-            string fullPath = $"{_settings.MakelineServer}/makelines/{_settings.MakelineCode}/{Path}";
+            using var scope = _serviceProvider.CreateScope();
+            var dbcontext = scope.ServiceProvider.GetRequiredService<CutBenchContext>();
+
+            string fullPath = $"{dbcontext.GetSettings().MakelineServer}/makelines/{dbcontext.GetSettings().MakelineCode}/{Path}";
             try
             {
                 var response = await Client.GetAsync(fullPath);
@@ -65,11 +69,11 @@ namespace DominosCutScreen.Server.Services
             return DeserializeXML<T>(result);
         }
 
-        public MakelineService(IHttpClientFactory httpClientFactory, ILogger<MakelineService> logger, SettingsService Settings)
+        public MakelineService(IHttpClientFactory httpClientFactory, ILogger<MakelineService> logger, IServiceProvider serviceProvider)
         {
             _httpClientFactory = httpClientFactory;
             _logger = logger;
-            _settings = Settings;
+            _serviceProvider = serviceProvider;
             Orders = new List<MakeLineOrder>();
             BumpHistory = new List<MakeLineOrderItemHistory>();
             _lastMakelineCheck = DateTime.Now.Date; // Make it midnight so we get as much info as possible
@@ -84,6 +88,16 @@ namespace DominosCutScreen.Server.Services
 
             while (!stoppingToken.IsCancellationRequested)
             {
+                using var scope = _serviceProvider.CreateScope();
+                var dbcontext = scope.ServiceProvider.GetRequiredService<CutBenchContext>();
+
+                // If the database isnt ready, wait 1 second.
+                if (dbcontext.Settings == null)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
+                    continue;
+                }
+
                 // Bump History
                 await FetchBumpHistory(client);
 
@@ -98,7 +112,7 @@ namespace DominosCutScreen.Server.Services
                     BumpHistory = new List<MakeLineOrderItemHistory>();
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(_settings.FetchInterval), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(dbcontext.GetSettings().FetchInterval), stoppingToken);
             }
         }
 

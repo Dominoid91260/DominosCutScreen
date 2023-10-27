@@ -1,7 +1,9 @@
+using DominosCutScreen.Server.Models;
 using DominosCutScreen.Server.Services;
 using DominosCutScreen.Shared;
 
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.EntityFrameworkCore;
 
 namespace DominosCutScreen
 {
@@ -24,10 +26,17 @@ namespace DominosCutScreen
             builder.Services.AddControllersWithViews();
             builder.Services.AddRazorPages();
             builder.Services.AddHttpClient();
+
+            builder.Services.AddDbContext<CutBenchContext>();
             builder.Services.AddHostedService<MakelineService>();
-            builder.Services.AddSingleton<SettingsService>();
 
             var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<CutBenchContext>();
+                context.Database.Migrate();
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

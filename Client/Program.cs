@@ -1,10 +1,11 @@
 using Blazored.LocalStorage;
 
-using DominosCutScreen.Client;
 using DominosCutScreen.Shared;
 
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+
+using System.Net.Http.Json;
 
 namespace DominosCutScreen.Client
 {
@@ -18,7 +19,16 @@ namespace DominosCutScreen.Client
 
             builder.Services.AddBlazoredLocalStorage();
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-            builder.Services.AddSingleton<SettingsService>();
+
+            {
+                var client = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };
+                var result = await client.GetFromJsonAsync<SettingsService>("/api/Settings/Get");
+
+                if (result == null)
+                    throw new ApplicationException("Failed to get Settings from server");
+
+                builder.Services.AddSingleton(result);
+            }
 
             await builder.Build().RunAsync();
         }

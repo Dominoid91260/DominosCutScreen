@@ -1,4 +1,5 @@
-﻿using DominosCutScreen.Shared;
+﻿using DominosCutScreen.Server.Models;
+using DominosCutScreen.Shared;
 
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,109 +10,139 @@ namespace DominosCutScreen.Server.Controllers
     public class SettingsController : Controller
     {
         private readonly ILogger<SettingsController> _logger;
-        private readonly SettingsService _settings;
+        private readonly CutBenchContext _context;
 
-        public SettingsController(ILogger<SettingsController> logger, SettingsService settings)
+        public SettingsController(ILogger<SettingsController> logger, CutBenchContext context)
         {
             _logger = logger;
-            _settings = settings;
+            _context = context;
+        }
+
+        [HttpGet]
+        public IActionResult Get()
+        {
+            return Ok(_context.GetSettings());
         }
 
         // `HttpPut` requires an Id which we dont have, so we use `HttpPost` instead.
 
         [HttpPost]
-        public IActionResult MakelineServer([FromBody] string makelineServer)
+        public async Task<IActionResult> MakelineServer([FromBody] string makelineServer)
         {
             _logger.LogInformation("Setting MakelineServer to {server}", makelineServer);
-            _settings.MakelineServer = makelineServer;
+            _context.GetSettings().MakelineServer = makelineServer;
+            await _context.SaveChangesAsync();
+
             return Ok();
         }
 
         [HttpPost]
-        public IActionResult MakelineCode(int makelineCode)
+        public async Task<IActionResult> MakelineCode(int makelineCode)
         {
             _logger.LogInformation("Setting MakelineCode to {code}", makelineCode);
-            _settings.MakelineCode = makelineCode;
+            _context.GetSettings().MakelineCode = makelineCode;
+            await _context.SaveChangesAsync();
+
             return Ok();
         }
 
         [HttpPost]
-        public IActionResult OvenTime(int ovenTime)
+        public async Task<IActionResult> OvenTime(int ovenTime)
         {
             _logger.LogInformation("Setting OvenTime to {time}", ovenTime);
-            _settings.OvenTime = ovenTime;
+            _context.GetSettings().OvenTime = ovenTime;
+            await _context.SaveChangesAsync();
+
             return Ok();
         }
 
         [HttpPost]
-        public IActionResult GraceTime(int graceTime)
+        public async Task<IActionResult> GraceTime(int graceTime)
         {
             _logger.LogInformation("Setting GraceTime to {time}", graceTime);
-            _settings.GraceTime = graceTime;
+            _context.GetSettings().GraceTime = graceTime;
+            await _context.SaveChangesAsync();
+
             return Ok();
         }
 
         [HttpPost]
-        public IActionResult AlertInterval(int alertInterval)
+        public async Task<IActionResult> AlertInterval(int alertInterval)
         {
             _logger.LogInformation("Setting AlertInterval to {time}", alertInterval);
-            _settings.AlertInterval = alertInterval;
+            _context.GetSettings().AlertInterval = alertInterval;
+            await _context.SaveChangesAsync();
+
             return Ok();
         }
 
         [HttpPost]
-        public IActionResult FetchInterval(int fetchInterval)
+        public async Task<IActionResult> FetchInterval(int fetchInterval)
         {
             _logger.LogInformation("Setting FetchInterval to {time}", fetchInterval);
-            _settings.FetchInterval = fetchInterval;
+            _context.GetSettings().FetchInterval = fetchInterval;
+            await _context.SaveChangesAsync();
+
             return Ok();
         }
 
         [HttpPost("QuietTime/Enabled")]
-        public IActionResult QuietTimeEnabled(bool isEnabled)
+        public async Task<IActionResult> QuietTimeEnabled(bool isEnabled)
         {
             _logger.LogInformation("Setting QuietTime Enabled to {enabled}", isEnabled);
-            _settings.QuietTime.IsEnabled = isEnabled;
+            _context.GetSettings().QuietTime.IsEnabled = isEnabled;
+            await _context.SaveChangesAsync();
+
             return Ok();
         }
 
         [HttpPost("QuietTime/Start")]
-        public IActionResult QuietTimeStart(TimeOnly start)
+        public async Task<IActionResult> QuietTimeStart(TimeOnly start)
         {
             _logger.LogInformation("Setting QuietTime Start to {start}", start);
-            _settings.QuietTime.Start = start;
+            _context.GetSettings().QuietTime.Start = start;
+            await _context.SaveChangesAsync();
+
             return Ok();
         }
 
         [HttpPost("QuietTime/End")]
-        public IActionResult QuietTimeEnd(TimeOnly end)
+        public async Task<IActionResult> QuietTimeEnd(TimeOnly end)
         {
             _logger.LogInformation("Setting QuietTime End to {end}", end);
-            _settings.QuietTime.End = end;
+            _context.GetSettings().QuietTime.End = end;
+            await _context.SaveChangesAsync();
+
             return Ok();
         }
 
         [HttpPost("TimedOrderAlarm/Enabled")]
-        public IActionResult TimedOrderAlarmEnabled(bool isEnabled)
+        public async Task<IActionResult> TimedOrderAlarmEnabled(bool isEnabled)
         {
             _logger.LogInformation("Setting TimedOrder Enabled to {enabled}", isEnabled);
-            _settings.TimedOrderAlarm.IsEnabled = isEnabled;
+            _context.GetSettings().TimedOrderAlarm.IsEnabled = isEnabled;
+            await _context.SaveChangesAsync();
+
             return Ok();
         }
 
         [HttpPost("TimedOrderAlarm/SecondsPerPizza")]
-        public IActionResult TimedOrderAlarmSecondsPerPizza(int secondsPerPizza)
+        public async Task<IActionResult> TimedOrderAlarmSecondsPerPizza(int secondsPerPizza)
         {
             _logger.LogInformation("Setting TimedOrder SecondsPerPizza to {time}", secondsPerPizza);
-            _settings.TimedOrderAlarm.SecondsPerPizza= secondsPerPizza;
+            _context.GetSettings().TimedOrderAlarm.SecondsPerPizza= secondsPerPizza;
+            await _context.SaveChangesAsync();
+
             return Ok();
         }
 
         [HttpPost("TimedOrderAlarm/MinPizzaThreshold")]
-        public IActionResult TimedOrderAlarmMinPizzaThreshold(int minPizzaThreshold)
+        public async Task<IActionResult> TimedOrderAlarmMinPizzaThreshold(int minPizzaThreshold)
         {
             _logger.LogInformation("Setting TimedOrder MinPizzaThreshold to {threshold}", minPizzaThreshold);
-            _settings.TimedOrderAlarm.MinPizzaThreshold = minPizzaThreshold;
+            _context.GetSettings().TimedOrderAlarm.MinPizzaThreshold = minPizzaThreshold;
+            await _context.SaveChangesAsync();
+
             return Ok();
         }
     }
