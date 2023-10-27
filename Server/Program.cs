@@ -15,6 +15,10 @@ namespace DominosCutScreen
             builder.Logging.ClearProviders();
             builder.Logging.AddConsole();
 
+#if DEBUG
+            builder.Logging.AddDebug();
+#endif // DEBUG
+
             // Add services to the container.
 
             builder.Services.AddControllersWithViews();
