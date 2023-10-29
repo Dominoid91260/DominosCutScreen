@@ -1,4 +1,5 @@
-﻿using DominosCutScreen.Server.Services;
+﻿using DominosCutScreen.Server.Models;
+using DominosCutScreen.Server.Services;
 using DominosCutScreen.Shared;
 
 using Microsoft.AspNetCore.Mvc;
@@ -9,13 +10,13 @@ namespace DominosCutScreen.Server.Controllers
     [ApiController]
     public class MakelineController : ControllerBase
     {
-        private readonly SettingsService _settings;
+        private readonly CutBenchContext _context;
         private readonly ILogger<MakelineController> _logger;
 
-        public MakelineController(ILogger<MakelineController> logger, SettingsService settings)
+        public MakelineController(ILogger<MakelineController> logger, CutBenchContext context)
         {
             _logger = logger;
-            _settings = settings;
+            _context = context;
         }
 
         [HttpGet("orders")]
@@ -50,7 +51,7 @@ namespace DominosCutScreen.Server.Controllers
             var client = new HttpClient();
             try
             {
-                var response = await client.PostAsync($"{_settings.MakelineServer}/makelines/{_settings.MakelineCode}/silenceAlarm", null);
+                var response = await client.PostAsync($"{_context.GetSettings().MakelineServer}/makelines/{_context.GetSettings().MakelineCode}/silenceAlarm", null);
                 if (response.IsSuccessStatusCode)
                     return Ok();
 
@@ -70,7 +71,7 @@ namespace DominosCutScreen.Server.Controllers
             var client = new HttpClient();
             try
             {
-                var response = await client.PostAsync($"{_settings.MakelineServer}/makelines/{_settings.MakelineCode}/orders/{OrderNumber}/print", null);
+                var response = await client.PostAsync($"{_context.GetSettings().MakelineServer}/makelines/{_context.GetSettings().MakelineCode}/orders/{OrderNumber}/print", null);
                 if (response.IsSuccessStatusCode)
                     return Ok();
 
