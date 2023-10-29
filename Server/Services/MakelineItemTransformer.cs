@@ -156,7 +156,7 @@ namespace DominosCutScreen.Server.Services
                 // My solution for this is the remove all the spaces from both, then remove then remove `ProductDescription` from `Description`.
                 // The main issue with this is that crusts with spaces (e.g. "GLUTEN FREE") fail to get removed correctly in CommonMakelineItem.ParseCrustName.
                 // the workaround is to create an empty pair in MakelineOverrideManager.CrustNameOverrides
-                var desc = string.Concat(item.Description.Where(c => !char.IsWhiteSpace(c)));
+                var desc = string.Concat(item.PrettyItemName.Where(c => !char.IsWhiteSpace(c)));
                 string pdesc = string.Concat(makelineItem.ProductDescription.Where(c => !char.IsWhiteSpace(c)));
                 crustString = desc.Replace(pdesc, null, StringComparison.InvariantCultureIgnoreCase);
             }
