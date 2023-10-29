@@ -137,18 +137,6 @@ namespace DominosCutScreen.Server.Services
             {
                 lock (Orders)
                 {
-                    foreach (var order in orders.Orders)
-                    {
-                        foreach (var item in order.Items)
-                        {
-                            // Sometimes the makeline will report no bump times even though the order is bumped
-                            if (order.IsBumped && item.BumpedTimes.Count == 0)
-                            {
-                                item.BumpedTimes = Enumerable.Range(0, item.Quantity).Select(n => order.ActualOrderedAt).ToList();
-                            }
-                        }
-                    }
-
                     Orders = Orders.Concat(orders.Orders).GroupBy(o => o.OrderNumber).Select(g => g.Last());
                     foreach (var item in Orders.SelectMany(o => o.Items))
                     {

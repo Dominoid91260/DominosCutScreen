@@ -17,10 +17,24 @@ namespace DominosCutScreen.Server.Services
         public T ProcessMakelineItem<T>(T item) where T : CommonMakelineItem
         {
             item.PrettyItemName = item.Description;
+            EnsureBumpTimes(item);
             ParsePostBakes(item);
             TrimDescriptionDecorations(item);
             ParseCrustName(item);
             return item;
+        }
+
+        /// <summary>
+        /// Sometimes the makeline will report a mis-match in the number of bump times vs quantity even though the order is bumped.
+        /// This function adds more times to make up the difference.
+        /// </summary>
+        private void EnsureBumpTimes(CommonMakelineItem item)
+        {
+            if (item is MakeLineOrderLine makelineOrder)
+            {
+                // The old code used the order actual time but i cant be bothered adding an `Order` member and its not critical so `Now` will do.
+                makelineOrder.BumpedTimes.AddRange(Enumerable.Range(0, makelineOrder.Quantity - makelineOrder.BumpedTimes.Count).Select(x => DateTime.Now));
+            }
         }
 
         /// <summary>
