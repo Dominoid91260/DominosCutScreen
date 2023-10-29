@@ -16,7 +16,7 @@ namespace DominosCutScreen.Server.Services
         public IEnumerable<MakeLineOrder> Orders { get; private set; }
         public IEnumerable<MakeLineOrderItemHistory> BumpHistory { get; private set; }
 
-        private static T? DeserializeXML<T>(string xml) where T : class
+        private T? DeserializeXML<T>(string xml) where T : class
         {
             if (xml.Length == 0)
                 return default;
@@ -30,7 +30,7 @@ namespace DominosCutScreen.Server.Services
             }
             catch (InvalidOperationException e)
             {
-                Console.Error.WriteLine($"MakelineService.DeserializeXML failed: {e.Message}");
+                _logger.LogError("MakelineService.DeserializeXML failed: {message}", e.Message);
                 return null;
             }
         }
