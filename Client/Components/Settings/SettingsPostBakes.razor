@@ -1,0 +1,105 @@
+﻿@using DominosCutScreen.Shared;
+@inject HttpClient Http
+@inject SettingsService Settings
+
+<div class="row justify-content-between mb-1">
+    <div class="col-2 text-center"><h6>Receipt Code</h6></div>
+    <div class="col-3 text-center"><h6>Topping Code</h6></div>
+    <div class="col-4 text-center"><h6>Description</h6></div>
+    <div class="col-1 text-center p-0"><h6>Enabled</h6></div>
+    <div class="col-1 text-center"></div>
+</div>
+
+<!-- Add a new postbake -->
+<div class="row justify-content-between mb-1">
+    <div class="col-2"><InputText class="form-control" @bind-Value="@Model.ReceiptCode" /></div>
+    <div class="col-3"><InputText class="form-control" @bind-Value="@Model.ToppingCode" /></div>
+    <div class="col-4"><InputText class="form-control" @bind-Value="@Model.ToppingDescription" /></div>
+    <div class="col-1"></div>
+    <div class="col-1">
+        <button class="btn btn-success" @onclick="@(async e => await AddPostbake())"><span class="oi oi-plus"></span></button>
+    </div>
+</div>
+<hr />
+
+@for (var i = 0; i < Settings.PostBakes.Count; ++ i)
+{
+    var index = i;
+    var postbake = Settings.PostBakes.ElementAt(index);
+
+    <div class="row justify-content-between mb-1">
+        <div class="col-2">
+            <InputText class="form-control" @key="postbake" @bind-Value="@postbake.ReceiptCode" disabled />
+        </div>
+
+        <div class="col-3">
+            <InputText class="form-control" @key="postbake" @bind-Value="@postbake.ToppingCode" @bind-Value:after="() => OnToppingCodeChanged(index)" />
+        </div>
+
+        <div class="col-4">
+            <InputText class="form-control" @key="postbake" @bind-Value="@postbake.ToppingDescription" @bind-Value:after="() => OnToppingDescriptionChanged(index)" />
+        </div>
+
+        <div class="col-1">
+            <div class="d-flex justify-content-center form-check form-switch">
+                <input type="checkbox" class="form-check-input" @key="postbake.ReceiptCode" @bind="@postbake.IsEnabled" @bind:after="() => OnIsEnabledChanged(index)" />
+            </div>
+        </div>
+
+        <div class="col-1">
+            <btn class="btn btn-danger" @onclick="(async e => await OnRemoved(index))"><span class="oi oi-trash"></span></btn>
+        </div>
+    </div>
+}
+
+@code {
+    private string? ReceiptCode = null;
+    private PostBake Model = new();
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Model ??= new();
+    }
+
+    private async Task OnToppingCodeChanged(int index)
+    {
+        var postbake = Settings.PostBakes.ElementAt(index);
+        await Http.PutAsJsonAsync($"/api/Settings/PostBake/{postbake.ReceiptCode}/ToppingCode", postbake.ToppingCode);
+    }
+
+    private async Task OnToppingDescriptionChanged(int index)
+    {
+        var postbake = Settings.PostBakes.ElementAt(index);
+        await Http.PutAsJsonAsync($"/api/Settings/PostBake/{postbake.ReceiptCode}/ToppingDescription", postbake.ToppingDescription);
+    }
+
+    private async Task OnIsEnabledChanged(int index)
+    {
+        var postbake = Settings.PostBakes.ElementAt(index);
+        await Http.PutAsJsonAsync($"/api/Settings/PostBake/{postbake.ReceiptCode}/Enabled", postbake.IsEnabled);
+    }
+
+    private async Task OnRemoved(int index)
+    {
+        var postbake = Settings.PostBakes.ElementAt(index);
+        await Http.DeleteAsync($"/api/Settings/PostBake/{postbake.ReceiptCode}");
+    }
+
+    private async Task AddPostbake()
+    {
+        // We allow duplicate topping codes and descriptions
+        if (
+            string.IsNullOrWhiteSpace(Model.ReceiptCode) || // Empty ReceiptCode
+            string.IsNullOrWhiteSpace(Model.ToppingCode) || // Empty ToppingCode
+            string.IsNullOrWhiteSpace(Model.ToppingDescription) || // Empty ToppingCode
+            Settings.PostBakes.Any(pb => pb.ReceiptCode.Equals(Model.ReceiptCode, StringComparison.InvariantCultureIgnoreCase)) // ReceiptCode exists
+        )
+            return;
+
+        Settings.PostBakes.Add(Model);
+        await Http.PostAsJsonAsync("/api/Settings/PostBake", Model);
+
+        Model = new();
+    }
+}

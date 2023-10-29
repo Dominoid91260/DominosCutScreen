@@ -145,5 +145,71 @@ namespace DominosCutScreen.Server.Controllers
 
             return Ok();
         }
+
+        [HttpPut("/api/[controller]/PostBake/{receiptCode}/ToppingCode")]
+        public async Task<IActionResult> PostBakeToppingCode(string receiptCode, [FromBody] string toppingCode)
+        {
+            var postbake = await _context.PostBakes.FindAsync(receiptCode);
+            if (postbake == null)
+                return NotFound();
+
+            postbake.ToppingCode = toppingCode;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPut("/api/[controller]/PostBake/{receiptCode}/ToppingDescription")]
+        public async Task<IActionResult> PostBakeToppingDescription(string receiptCode, [FromBody] string toppingDescription)
+        {
+            var postbake = await _context.PostBakes.FindAsync(receiptCode);
+            if (postbake == null)
+                return NotFound();
+
+            postbake.ToppingDescription = toppingDescription;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPut("/api/[controller]/PostBake/{receiptCode}/Enabled")]
+        public async Task<IActionResult> PostBakeEnabled(string receiptCode, [FromBody] bool enabled)
+        {
+            var postbake = await _context.PostBakes.FindAsync(receiptCode);
+            if (postbake == null)
+                return NotFound();
+
+            postbake.IsEnabled = enabled;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPost("/api/[controller]/PostBake")]
+        public async Task<IActionResult> PostBakeEnabled([FromBody] PostBake newPostbake)
+        {
+            var postbake = await _context.PostBakes.FindAsync(newPostbake.ReceiptCode);
+            if (postbake != null)
+                return Conflict();
+
+            newPostbake.IsEnabled = true;
+            await _context.PostBakes.AddAsync(newPostbake);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpDelete("/api/[controller]/PostBake/{receiptCode}")]
+        public async Task<IActionResult> PostBakeDelete(string receiptCode)
+        {
+            var postbake = await _context.PostBakes.FindAsync(receiptCode);
+            if (postbake == null)
+                return NotFound();
+
+            _context.PostBakes.Remove(postbake);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
     }
 }

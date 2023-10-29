@@ -1,4 +1,5 @@
 @using DominosCutScreen.Client.Components.Settings
+@inject IJSRuntime JS
 
 <div class="modal" id="settingsModal" tabindex="-1">
     <div class="modal-dialog">
@@ -19,9 +20,7 @@
                 </ul>
                 <div class="tab-content">
                     <div class="tab-pane pt-3 show active" id="settingsMain"><SettingsMain/></div>
-                    <div class="tab-pane pt-3" id="settingsPostbakes">
-                        <p>Postbakes</p>
-                    </div>
+                    <div class="tab-pane pt-3" id="settingsPostbakes"><SettingsPostBakes/></div>
                 </div>
             </div>
 
@@ -34,4 +33,13 @@
 
 @code
 {
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+
+        if (firstRender)
+        {
+            JS.InvokeVoidAsync("setupSettingsModalEvents");
+        }
+    }
 }
