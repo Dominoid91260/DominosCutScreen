@@ -10,7 +10,6 @@ namespace DominosCutScreen.Server.Services
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<MakelineService> _logger;
         private readonly IServiceProvider _serviceProvider;
-        private readonly object _lock = new();
         private readonly MakelineItemTransformer _itemTransformer;
         private DateTime _lastMakelineCheck;
 
@@ -123,7 +122,7 @@ namespace DominosCutScreen.Server.Services
             var bumpHistory = await FetchAndDeserialize<ArrayOfMakeLineOrderItemHistory>(client, "orderHistory");
             if (bumpHistory != null)
             {
-                lock (_lock)
+                lock (BumpHistory)
                 {
                     BumpHistory = bumpHistory.Items.Select(i => _itemTransformer.ProcessMakelineItem(i));
                 }
@@ -136,7 +135,7 @@ namespace DominosCutScreen.Server.Services
             _lastMakelineCheck = DateTime.Now;
             if (orders != null)
             {
-                lock (_lock)
+                lock (Orders)
                 {
                     foreach (var order in orders.Orders)
                     {
