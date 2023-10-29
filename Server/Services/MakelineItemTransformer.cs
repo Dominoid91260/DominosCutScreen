@@ -95,6 +95,28 @@ namespace DominosCutScreen.Server.Services
                 data.PizzaDistribution = distribution;
                 item.ToppingModifications.Add(data);
             }
+
+            item.ToppingModifications = item.ToppingModifications.Where(tm =>
+            {
+                // If we dont have a postbake in the database OR the postbake in the database is enabled, allow it.
+                // This filters out postbakes that are disabled in the database
+                var pb = context.PostBakes.FirstOrDefault(pb => pb.ToppingCode == tm.ToppingCode);
+                return pb == null || pb.IsEnabled;
+            })
+            .Select(tm =>
+            {
+                // Overwrite topping description with whats in the database
+
+                var pb = context.PostBakes.FirstOrDefault(pb => pb.ToppingCode == tm.ToppingCode);
+
+                // Only fix up toppings we didnt add as those have already been formatted
+                if (pb != null && tm.DisplaySequence >= 0)
+                {
+                    tm.ToppingDescription = $"*** {pb.ToppingDescription}";
+                }
+
+                return tm;
+            }).ToList();
         }
 
         /// <summary>
