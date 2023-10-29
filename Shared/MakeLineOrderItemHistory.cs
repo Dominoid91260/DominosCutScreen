@@ -67,10 +67,5 @@ namespace DominosCutScreen.Shared
         {
             return !(left == right);
         }
-
-        public void OnDeserializedMethod()
-        {
-            OnDeserialized();
-        }
     }
 }

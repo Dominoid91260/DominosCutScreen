@@ -10,5 +10,14 @@ namespace DominosCutScreen.Shared
         public string ToppingCode { get; set; }
         public string ToppingDescription { get; set; }
         public bool IsEnabled { get; set; }
+
+        public MakeLineToppingModification AsToppingModification() => new()
+        {
+            OptionTypeCode = "cutbench",
+            ToppingCode = ToppingCode,
+            ToppingDescription = $"*** {ToppingDescription}",
+            //ToppingDistribution is set in `MakelineItemTransformer.ParsePostBakes`
+            ToppingAmountCode = 49
+        };
     }
 }

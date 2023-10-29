@@ -11,6 +11,7 @@ namespace DominosCutScreen.Server.Services
         private readonly ILogger<MakelineService> _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly object _lock = new();
+        private readonly MakelineItemTransformer _itemTransformer;
         private DateTime _lastMakelineCheck;
 
         public IEnumerable<MakeLineOrder> Orders { get; private set; }
@@ -69,12 +70,13 @@ namespace DominosCutScreen.Server.Services
             return DeserializeXML<T>(result);
         }
 
-        public MakelineService(IHttpClientFactory httpClientFactory, ILogger<MakelineService> logger, IServiceProvider serviceProvider)
+        public MakelineService(IHttpClientFactory httpClientFactory, ILogger<MakelineService> logger, IServiceProvider serviceProvider, MakelineItemTransformer itemTransformer)
         {
             _httpClientFactory = httpClientFactory;
             _logger = logger;
             _serviceProvider = serviceProvider;
             Orders = new List<MakeLineOrder>();
+            _itemTransformer = itemTransformer;
             BumpHistory = new List<MakeLineOrderItemHistory>();
             _lastMakelineCheck = DateTime.Now.Date; // Make it midnight so we get as much info as possible
         }
@@ -123,12 +125,7 @@ namespace DominosCutScreen.Server.Services
             {
                 lock (_lock)
                 {
-                    BumpHistory = bumpHistory.Items;
-
-                    foreach (var item in BumpHistory.Where(i => i.PrettyItemName == null))
-                    {
-                        item.OnDeserializedMethod();
-                    }
+                    BumpHistory = bumpHistory.Items.Select(i => _itemTransformer.ProcessMakelineItem(i));
                 }
             }
         }
@@ -150,14 +147,14 @@ namespace DominosCutScreen.Server.Services
                             {
                                 item.BumpedTimes = Enumerable.Range(0, item.Quantity).Select(n => order.ActualOrderedAt).ToList();
                             }
-
-                            if (item.PrettyItemName == null)
-                            {
-                                item.OnDeserializedMethod();
-                            }
                         }
                     }
+
                     Orders = Orders.Concat(orders.Orders).GroupBy(o => o.OrderNumber).Select(g => g.Last());
+                    foreach (var item in Orders.SelectMany(o => o.Items))
+                    {
+                        _itemTransformer.ProcessMakelineItem(item);
+                    }
                 }
             }
         }

@@ -112,25 +112,5 @@ namespace DominosCutScreen.Shared
         public int TotalWeight { get; set; }
 
         // ToppingModifiedPizzaPartCodes
-
-        public void OnDeserializedMethod()
-        {
-            string? crustString = null;
-
-            // Ignore sides, and oddly enough ignore MDB since their `ProductDescription` and `Description` are the same
-            if (ProductCategory == "Pizza")
-            {
-                // For some stupid af reason, the double bacon cheeseburger has 2 different strings in `ProductDescription` and `Description`.
-                //  "DblBcnChsBurg+m" and "Dbl Bcn Chs Burg+M"
-                // My solution for this is the remove all the spaces from both, then remove then remove `ProductDescription` from `Description`.
-                // The main issue with this is that crusts with spaces (e.g. "GLUTEN FREE") fail to get removed correctly in CommonMakelineItem.ParseCrustName.
-                // the workaround is to create an empty pair in MakelineOverrideManager.CrustNameOverrides
-                var desc = string.Concat(Description.Where(c => !char.IsWhiteSpace(c)));
-                string pdesc = string.Concat(ProductDescription.Where(c => !char.IsWhiteSpace(c)));
-                crustString = desc.Replace(pdesc, null, StringComparison.InvariantCultureIgnoreCase);
-            }
-
-            OnDeserialized(crustString);
-        }
     }
 }
