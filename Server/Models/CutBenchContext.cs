@@ -52,8 +52,27 @@ namespace DominosCutScreen.Server.Models
                 {
                     new { SettingsServiceId = 1, IsEnabled = false, SecondsPerPizza = 15, MinPizzaThreshold = 7 }
                 });
+
+            modelBuilder.Entity<SettingsService>()
+                .HasMany(s => s.PostBakes);
+
+            modelBuilder.Entity<PostBake>()
+                .HasData(
+                    new { SettingsServiceId = 1, ReceiptCode = "*", ToppingCode = "SPO", ToppingDescription = "Spring Onion", IsEnabled = true },
+                    new { SettingsServiceId = 1, ReceiptCode = "B", ToppingCode = "BtrChk", ToppingDescription = "Butter Chicken Sce", IsEnabled = true },
+                    new { SettingsServiceId = 1, ReceiptCode = "CS", ToppingCode = "CeSpr", ToppingDescription = "Cheese Sprinkle", IsEnabled = true }, // Not a real topping so theres no topping code
+                    new { SettingsServiceId = 1, ReceiptCode = "F", ToppingCode = "FRANKS", ToppingDescription = "Franks Hot Sce", IsEnabled = true },
+                    new { SettingsServiceId = 1, ReceiptCode = "GB", ToppingCode = "GBUTT", ToppingDescription = "Garlic Butter", IsEnabled = true },
+                    new { SettingsServiceId = 1, ReceiptCode = "HB", ToppingCode = "HICBBQ", ToppingDescription = "Hickory BBQ", IsEnabled = true },
+                    new { SettingsServiceId = 1, ReceiptCode = "HO", ToppingCode = "HOLLAND", ToppingDescription = "Hollandaise", IsEnabled = true },
+                    new { SettingsServiceId = 1, ReceiptCode = "M", ToppingCode = "My", ToppingDescription = "Mayonnaise", IsEnabled = true },
+                    new { SettingsServiceId = 1, ReceiptCode = "P", ToppingCode = "PERI", ToppingDescription = "Peri Peri Sce", IsEnabled = true },
+                    new { SettingsServiceId = 1, ReceiptCode = "PA", ToppingCode = "PARMSC", ToppingDescription = "Garlc Parm Sce", IsEnabled = true },
+                    new { SettingsServiceId = 1, ReceiptCode = "T", ToppingCode = "TOMCAP", ToppingDescription = "Tom Caps Sce", IsEnabled = true }
+                );
         }
 
+        public DbSet<PostBake> PostBakes { get; set; }
         public DbSet<SettingsService> Settings {
             get => Set<SettingsService>();
         }
@@ -62,7 +81,7 @@ namespace DominosCutScreen.Server.Models
         {
             if (_actualSettings == null)
             {
-                _actualSettings = Settings.FirstOrDefault();
+                _actualSettings = Settings.Include(s => s.PostBakes).FirstOrDefault();
             }
 
             return _actualSettings;

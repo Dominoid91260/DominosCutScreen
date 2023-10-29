@@ -89,5 +89,7 @@ namespace DominosCutScreen.Shared
         /// </summary>
         public TimedOrderAlarm TimedOrderAlarm { get; set; }
         #endregion // Client
+
+        public virtual ICollection<PostBake> PostBakes { get; set; }
     }
 }
