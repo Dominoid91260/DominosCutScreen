@@ -258,7 +258,7 @@
         // Find all timed orders due to appear before we have time to make them.
         // We iterate over all of them before playing the sound so we dont play
         // the sound multiple times.
-        foreach (var order in Orders.Where(o => o.IsTimedOrder))
+        foreach (var order in Orders.Where(o => o.IsTimedOrder && !o.IsLive() && !o.IsBumped && !TimedOrderAlerts.Contains(o.OrderNumber)))
         {
             var qtyToMake = order.Items.Sum(i => i.Quantity);
 
