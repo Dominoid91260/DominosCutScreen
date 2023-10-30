@@ -30,10 +30,10 @@ namespace DominosCutScreen.Server.Services
         /// </summary>
         private void EnsureBumpTimes(CommonMakelineItem item)
         {
-            if (item is MakeLineOrderLine makelineOrder)
+            if (item is MakeLineOrderLine makelineItem && makelineItem.BumpedTimes.Count < makelineItem.Quantity)
             {
                 // The old code used the order actual time but i cant be bothered adding an `Order` member and its not critical so `Now` will do.
-                makelineOrder.BumpedTimes.AddRange(Enumerable.Range(0, makelineOrder.Quantity - makelineOrder.BumpedTimes.Count).Select(x => DateTime.Now));
+                makelineItem.BumpedTimes.AddRange(Enumerable.Range(0, makelineItem.Quantity - makelineItem.BumpedTimes.Count).Select(x => DateTime.Now));
             }
         }
 
