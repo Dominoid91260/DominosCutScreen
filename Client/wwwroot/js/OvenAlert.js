@@ -1,8 +1,3 @@
-function randomNumber(min, max)
-{
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
 let audio;
 function playOvenAlert()
 {
@@ -10,6 +5,6 @@ function playOvenAlert()
     if (audio != null && !audio.paused)
         return;
     
-    audio = new Audio("/audio/alert-" + randomNumber(1, 4) + ".mp3");
+    audio = new Audio("/audio/alarm.wav");
     audio.play();
 }
