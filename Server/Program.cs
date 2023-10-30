@@ -29,6 +29,7 @@ namespace DominosCutScreen
 
             builder.Services.AddDbContext<CutBenchContext>();
             builder.Services.AddHostedService<MakelineService>();
+            builder.Services.AddSingleton<MakelineItemTransformer>();
 
             var app = builder.Build();
 
