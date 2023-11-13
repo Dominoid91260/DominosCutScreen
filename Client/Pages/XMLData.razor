@@ -76,6 +76,15 @@
                 <button class="btn btn-primary" @onclick="@(async e => await RequestSilenceMakeline())">STFU Makeline</button>
             </li>
         </ul>
+        <ul class="navbar-nav flex-row ms-auto">
+            <li class="nav-item ma-auto">Manual Oven Timers:</li>
+            <li class="nav-item ms-3">
+                <button class="btn btn-primary" @onclick="AddHalfTimer">Half</button>
+            </li>
+            <li class="nav-item ms-3">
+                <button class="btn btn-primary" @onclick="AddFullTimer">Full</button>
+            </li>
+        </ul>
     </div>
 </nav>
 
@@ -111,6 +120,13 @@
 </div>
 
 @code {
+    class ManualTimer
+    {
+        public DateTime Created { get; set; }
+        public TimeSpan Duration { get; set; }
+        public bool Finished { get; set; } = false;
+    }
+
     private System.Timers.Timer FetchTimer = new ();
     private List<MakeLineOrder> Orders = new();
     private List<MakeLineOrderItemHistory> BumpHistory = new();
@@ -119,6 +135,7 @@
     private bool showAllOrders = false;
     private HashSet<DateTime> AlertedOrderNumbers = new();
     private HashSet<int> TimedOrderAlerts = new();
+    private List<ManualTimer> ManualTimers = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -141,6 +158,7 @@
         await FetchOrderData();
         await CheckTimedOrders();
         await CheckOvenTimer();
+        await CheckManualTimers();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -179,7 +197,7 @@
         await Http.GetAsync("api/Makeline/silence");
     }
 
-    private async Task PlayAlarm()
+    private async Task PlayAlarm(bool ignoreQuietTime = false)
     {
         if (Settings.QuietTime.IsEnabled)
         {
@@ -281,5 +299,35 @@
             /// @TODO play different alarm
             await PlayAlarm();
         }
+    }
+
+    private async Task CheckManualTimers()
+    {
+        foreach (var timer in ManualTimers.Where(t => !t.Finished))
+        {
+            if (DateTime.Now >= timer.Created + timer.Duration)
+            {
+                timer.Finished = true;
+                await PlayAlarm(true);
+            }
+        }
+    }
+
+    private void AddFullTimer()
+    {
+        ManualTimers.Add(new()
+        {
+            Created = DateTime.Now,
+            Duration = TimeSpan.FromSeconds(Settings.OvenTime)
+        });
+    }
+
+    private void AddHalfTimer()
+    {
+        ManualTimers.Add(new()
+        {
+            Created = DateTime.Now,
+            Duration = TimeSpan.FromSeconds(Settings.OvenTime / 2)
+        });
     }
 }
