@@ -227,7 +227,7 @@
         // Check first order of the day
         // Grab all current live orders and inversely order by what time they appeared on the makeline. Oldest first
         var liveOrders = newOrders.Where(o => o.IsLive()).OrderByDescending(o => o.IsTimedOrder ? o.SavedAt : o.ActualOrderedAt);
-        if (Orders.Count == 0 && liveOrders.Any())
+        if (BumpHistory.Count == 0 && liveOrders.Any())
         {
             var first = liveOrders.First();
 
