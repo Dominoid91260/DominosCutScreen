@@ -202,13 +202,17 @@ namespace DominosCutScreen.Shared
 
         public bool IsLive()
         {
+            // If the order is already bumped, it obviously is not a live order
             if (IsBumped)
                 return false;
 
+            // If the order is timed AND the "time to appear on screen" is before right now
+            // its live as its already on screen
             if (IsTimedOrder)
-                return SavedAt >= DateTime.Now;
+                return SavedAt <= DateTime.Now;
 
-            return ActualOrderedAt >= DateTime.Now;
+            // If the order was placed before right now, its live.
+            return ActualOrderedAt <= DateTime.Now;
         }
     }
 }
