@@ -136,6 +136,7 @@
     private HashSet<DateTime> AlertedOrderNumbers = new();
     private HashSet<int> TimedOrderAlerts = new();
     private List<ManualTimer> ManualTimers = new();
+    private bool HasPlayedFirstOrderAlarm = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -226,16 +227,19 @@
 
         // Check first order of the day
         // Grab all current live orders and inversely order by what time they appeared on the makeline. Oldest first
-        var liveOrders = newOrders.Where(o => o.IsLive()).OrderByDescending(o => o.IsTimedOrder ? o.SavedAt : o.ActualOrderedAt);
-        if (BumpHistory.Count == 0 && liveOrders.Any())
+        if (!HasPlayedFirstOrderAlarm && BumpHistory.Count == 0)
         {
-            var first = liveOrders.First();
-
-            // If the first order is an internet order or timed, play the sound
-            // ASAP orders taken by staff are expected to be communicated
-            if (first.IsTimedOrder || first.IsElectronic)
+            var liveOrders = newOrders.Where(o => o.IsLive()).OrderByDescending(o => o.IsTimedOrder ? o.SavedAt : o.ActualOrderedAt);
+            if (liveOrders.Any())
             {
-                await PlayAlarm();
+                var first = liveOrders.First();
+
+                // If the first order is an internet order or timed, play the sound
+                // ASAP orders taken by staff are expected to be communicated
+                if (first.IsTimedOrder || first.IsElectronic)
+                {
+                    await PlayAlarm();
+                }
             }
         }
 
