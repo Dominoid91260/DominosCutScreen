@@ -1,3 +1,4 @@
+using DominosCutScreen.Server.Hubs;
 using DominosCutScreen.Server.Models;
 using DominosCutScreen.Server.Services;
 using DominosCutScreen.Shared;
@@ -31,7 +32,14 @@ namespace DominosCutScreen
             builder.Services.AddHostedService<MakelineService>();
             builder.Services.AddSingleton<MakelineItemTransformer>();
 
+            builder.Services.AddSignalR();
+            builder.Services.AddResponseCompression(options =>
+            {
+                options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" });
+            });
+
             var app = builder.Build();
+            app.UseResponseCompression();
 
             using (var scope = app.Services.CreateScope())
             {
@@ -60,6 +68,7 @@ namespace DominosCutScreen
 
             app.MapRazorPages();
             app.MapControllers();
+            app.MapHub<CutbenchHub>("/cutbenchhub");
             app.MapFallbackToFile("index.html");
 
             app.Run();

@@ -6,10 +6,12 @@
 @using System.Text.Json.Serialization;
 @using System.Globalization;
 @using System.Diagnostics.CodeAnalysis;
+@using Microsoft.AspNetCore.SignalR.Client
 @implements IDisposable
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject HttpClient Http
 @inject IJSRuntime JS
+@inject NavigationManager Navigation
 @inject SettingsService Settings
 
 @{
@@ -97,7 +99,7 @@
     {
         var orderNumber = number;
         var order = orders.Where(o => o.OrderNumber == orderNumber).First();
-        <Order @key=orderNumber MakelineOrder=order OnReceiptClicked=OnOrderReprint OnDismissClicked=OnOrderDismissed ShowPin=false />
+        <Order @key=orderNumber MakelineOrder=order OnReceiptClicked=OnOrderReprint OnDismissClicked=AddDismissedOrder ShowPin=false />
     }
     </div>
     }
@@ -106,7 +108,7 @@
     <div id="liveOrders" class="d-flex flex-row overflow-auto thinScollBar mb-4">
     @foreach (var order in ongoing)
     {
-        <Order @key=order.OrderNumber MakelineOrder=order OnReceiptClicked=OnOrderReprint OnDismissClicked=OnOrderDismissed OnPinClicked=OnOrderPinned />
+        <Order @key=order.OrderNumber MakelineOrder=order OnReceiptClicked=OnOrderReprint OnDismissClicked=AddDismissedOrder OnPinClicked=AddPinnedOrder />
     }
     </div>
 
@@ -114,7 +116,7 @@
     <div id="previousOrders" class="d-flex flex-row overflow-auto thinScollBar mb-4">
     @foreach (var order in finished)
     {
-        <Order @key=order.OrderNumber MakelineOrder=order  ShowDismiss=false OnReceiptClicked=OnOrderReprint OnPinClicked=OnOrderPinned />
+        <Order @key=order.OrderNumber MakelineOrder=order  ShowDismiss=false OnReceiptClicked=OnOrderReprint OnPinClicked=AddPinnedOrder />
     }
     </div>
 </div>
@@ -137,6 +139,7 @@
     private HashSet<int> TimedOrderAlerts = new();
     private List<ManualTimer> ManualTimers = new();
     private bool HasPlayedFirstOrderAlarm = false;
+    private HubConnection? hubConnection;
 
     protected override async Task OnInitializedAsync()
     {
@@ -151,6 +154,25 @@
         FetchTimer.Start();
 
         await JS.InvokeVoidAsync("SetAllOrderCardProgress");
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/cutbenchhub"))
+            .Build();
+
+        hubConnection.On<DateTime, TimeSpan>("SetTimer", (createdAt, duration) =>
+        {
+            ManualTimers.Add(new()
+            {
+                Created = createdAt,
+                Duration = duration,
+                Finished = false
+            });
+        });
+
+        hubConnection.On<int>("PinOrder", (orderNumber) => OnOrderPinned(orderNumber));
+        hubConnection.On<int>("DismissOrder", (orderNumber) => OnOrderDismissed(orderNumber));
+
+        await hubConnection.StartAsync();
     }
 
     protected async Task GetData()
@@ -168,10 +190,20 @@
         FetchTimer?.Dispose();
     }
 
-    private void OnOrderDismissed(MakeLineOrder Order)
+    private async Task AddDismissedOrder(MakeLineOrder Order)
     {
-        PinnedOrders.Remove(Order.OrderNumber);
-        CutBumpedOrders.Add(Order.OrderNumber);
+        if (hubConnection != null)
+        {
+            await hubConnection.SendAsync("DismissOrder", Order.OrderNumber);
+        }
+
+        OnOrderDismissed(Order.OrderNumber);
+    }
+
+    private void OnOrderDismissed(int OrderNumber)
+    {
+        PinnedOrders.Remove(OrderNumber);
+        CutBumpedOrders.Add(OrderNumber);
     }
 
     private async Task OnOrderReprint(MakeLineOrder Order)
@@ -179,17 +211,27 @@
         await Http.GetAsync($"api/Makeline/reprint/{Order.OrderNumber}");
     }
 
-    private void OnOrderPinned(MakeLineOrder Order)
+    private async Task AddPinnedOrder(MakeLineOrder Order)
     {
-        CutBumpedOrders.Remove(Order.OrderNumber);
-
-        if (PinnedOrders.Contains(Order.OrderNumber))
+        if (hubConnection != null)
         {
-            PinnedOrders.Remove(Order.OrderNumber);
+            await hubConnection.SendAsync("PinOrder", Order.OrderNumber);
+        }
+
+        OnOrderPinned(Order.OrderNumber);
+    }
+
+    private void OnOrderPinned(int OrderNumber)
+    {
+        CutBumpedOrders.Remove(OrderNumber);
+
+        if (PinnedOrders.Contains(OrderNumber))
+        {
+            PinnedOrders.Remove(OrderNumber);
         }
         else
         {
-            PinnedOrders.Add(Order.OrderNumber);
+            PinnedOrders.Add(OrderNumber);
         }
     }
 
