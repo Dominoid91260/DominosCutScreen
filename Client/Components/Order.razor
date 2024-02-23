@@ -1,5 +1,6 @@
 ﻿@using DominosCutScreen.Shared
 @using System.Globalization;
+@inject HttpClient Http
 
 @{
     var bgcolor = MakelineOrder.IsExpedited ? "bg-info" : string.Empty;
@@ -74,15 +75,14 @@
     private DateTime LastBumpTime;
     private string FooterText = string.Empty;
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
-        base.OnParametersSet();
-
         LastBumpTime = MakelineOrder.Items.SelectMany(i => i.BumpedTimes).Max();
 
         if (MakelineOrder.TypeCode == "C")
         {
-            FooterText = "Pickup";
+            // This is deliberately broken to force putting the PulseApi url in until i can think of a better solution
+            FooterText = await Http.GetStringAsync($"http://{PULSE API URL}/api/Order/{MakelineOrder.OrderNumber}/CustomerName");
         }
         else
         {
