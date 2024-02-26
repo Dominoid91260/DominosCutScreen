@@ -14,6 +14,12 @@
     <label>Makeline Code</label>
 </div>
 
+<!-- PulseApi Server -->
+<div class="form-floating mb-1">
+    <InputText class="form-control" @bind-Value="Settings.PulseApiServer" @bind-Value:after="OnPulseApiServerChanged" />
+    <label>Pulse Api Server</label>
+</div>
+
 <!-- Makeline Fetch Time -->
 <div class="form-floating mb-1">
     <InputNumber class="form-control" @bind-Value="Settings.FetchInterval" @bind-Value:after="OnMakelineFetchTimeChanged" />
@@ -100,6 +106,11 @@
     private async Task OnMakelineCodeChanged()
     {
         await Http.PostAsJsonAsync("api/Settings/MakelineCode", Settings.MakelineCode);
+    }
+
+    private async Task OnPulseApiServerChanged()
+    {
+        await Http.PostAsJsonAsync("api/Settings/PulseApiServer", Settings.PulseApiServer);
     }
 
     private async Task OnMakelineFetchTimeChanged()

@@ -88,6 +88,11 @@ namespace DominosCutScreen.Shared
         /// When enabled, timed orders who's calculated time to make exceeds the current lead time will play an alarm.
         /// </summary>
         public TimedOrderAlarm TimedOrderAlarm { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string PulseApiServer { get; set; }
         #endregion // Client
 
         public virtual ICollection<PostBake> PostBakes { get; set; }

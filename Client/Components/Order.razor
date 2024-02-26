@@ -1,6 +1,7 @@
 ﻿@using DominosCutScreen.Shared
 @using System.Globalization;
 @inject HttpClient Http
+@inject SettingsService Settings
 
 @{
     var bgcolor = MakelineOrder.IsExpedited ? "bg-info" : string.Empty;
@@ -81,8 +82,15 @@
 
         if (MakelineOrder.TypeCode == "C")
         {
-            // This is deliberately broken to force putting the PulseApi url in until i can think of a better solution
-            FooterText = await Http.GetStringAsync($"http://{PULSE API URL}/api/Order/{MakelineOrder.OrderNumber}/CustomerName");
+            try
+            {
+                FooterText = await Http.GetStringAsync($"{Settings.PulseApiServer}/api/Order/{MakelineOrder.OrderNumber}/CustomerName");
+            }
+            catch (Exception e)
+            {
+                await Console.Error.WriteLineAsync(e.ToString());
+                FooterText = "Pickup";
+            }
         }
         else
         {

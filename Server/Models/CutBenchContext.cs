@@ -36,7 +36,8 @@ namespace DominosCutScreen.Server.Models
                     OvenTime = 300,
                     GraceTime = 90,
                     AlertInterval = 150,
-                    FetchInterval = 5
+                    FetchInterval = 5,
+                    PulseApiServer = "http://pulseapi"
                 });
 
             modelBuilder.Entity<SettingsService>()

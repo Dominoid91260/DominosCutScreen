@@ -146,6 +146,16 @@ namespace DominosCutScreen.Server.Controllers
             return Ok();
         }
 
+        [HttpPost]
+        public async Task<IActionResult> PulseApiServer([FromBody] string pulseApiServer)
+        {
+            _logger.LogInformation("Setting PulseApiServer to {server}", pulseApiServer);
+            _context.GetSettings().PulseApiServer = pulseApiServer;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
         [HttpPut("/api/[controller]/PostBake/{receiptCode}/ToppingCode")]
         public async Task<IActionResult> PostBakeToppingCode(string receiptCode, [FromBody] string toppingCode)
         {
