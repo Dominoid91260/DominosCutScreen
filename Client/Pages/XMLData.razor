@@ -208,7 +208,7 @@
 
     private async Task OnOrderReprint(MakeLineOrder Order)
     {
-        await Http.GetAsync($"api/Makeline/reprint/{Order.OrderNumber}");
+        await Http.PostAsync($"{Settings.PulseApiServer}/api/Order/{Order.OrderNumber}/print?orderDate={DateTime.Now.ToString("yyyy-MM-dd")}", null);
     }
 
     private async Task AddPinnedOrder(MakeLineOrder Order)
