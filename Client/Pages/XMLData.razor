@@ -249,7 +249,7 @@
                 return;
         }
 
-        await JS.InvokeVoidAsync("playOvenAlert");
+        await JS.InvokeVoidAsync("playOvenAlert", Settings.UseShortAlarm);
     }
 
     private async Task FetchBumpHistory()

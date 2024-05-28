@@ -80,6 +80,11 @@ namespace DominosCutScreen.Shared
         public int FetchInterval { get; set; }
 
         /// <summary>
+        /// Should the short alarm sound be used
+        /// </summary>
+        public bool UseShortAlarm { get; set; }
+
+        /// <summary>
         /// When enabled, oven and timed order alerts will not sound between Start and End times.
         /// </summary>
         public QuietTime QuietTime { get; set; }

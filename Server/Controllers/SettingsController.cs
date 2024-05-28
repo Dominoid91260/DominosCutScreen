@@ -77,6 +77,16 @@ namespace DominosCutScreen.Server.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> UseShortAlarmSounds([FromBody] bool useShortAlarm)
+        {
+            _logger.LogInformation("Setting UseShortAlarmSound to {value}", useShortAlarm);
+            _context.GetSettings().UseShortAlarm = useShortAlarm;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPost]
         public async Task<IActionResult> FetchInterval([FromBody] int fetchInterval)
         {
             _logger.LogInformation("Setting FetchInterval to {time}", fetchInterval);

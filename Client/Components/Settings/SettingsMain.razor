@@ -44,6 +44,14 @@
     <label>Oven Alert Gap Time (s)</label>
 </div>
 
+<!-- Short Alarm Sounds -->
+<div class="form-floating mb-1">
+    <div class="form-control form-check form-switch">
+        <input type="checkbox" class="form-check-input mx-auto" @bind="Settings.UseShortAlarm" @bind:after="OnUseShortAlarmSoundChanged" />
+    </div>
+    <label class="text-nowrap">Use Short Alarm Sound</label>
+</div>
+
 <!-- Quiet Time -->
 <div class="form-floating mb-1">
     <div class="d-flex flex-row justify-content-between form-control h-auto">
@@ -131,6 +139,11 @@
     private async Task OnOvenAlertGapTimeChanged()
     {
         await Http.PostAsJsonAsync("api/Settings/AlertInterval", Settings.AlertInterval);
+    }
+
+    private async Task OnUseShortAlarmSoundChanged()
+    {
+        await Http.PostAsJsonAsync("api/Settings/UseShortAlarmSounds", Settings.UseShortAlarm);
     }
 
     private async Task OnQuietTimeEnabledChanged()
