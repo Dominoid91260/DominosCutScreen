@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 RUN mkdir -p /app/{Server,Client,Shared}
 COPY Server/DominosCutScreen.Server.csproj /app/Server/
 COPY Client/DominosCutScreen.Client.csproj /app/Client/
@@ -10,7 +10,7 @@ RUN cd /app/Server \
  && dotnet build DominosCutScreen.Server.csproj -c Release -o /app/build \
  && dotnet publish DominosCutScreen.Server.csproj -c Release -o /app/publish /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:7.0 as final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 as final
 copy --from=build /app/publish /app
 EXPOSE 80
 EXPOSE 443
