@@ -1,5 +1,3 @@
-using Blazored.LocalStorage;
-
 using DominosCutScreen.Shared;
 
 using Microsoft.AspNetCore.Components.Web;
@@ -17,7 +15,6 @@ namespace DominosCutScreen.Client
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
-            builder.Services.AddBlazoredLocalStorage();
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
             {
