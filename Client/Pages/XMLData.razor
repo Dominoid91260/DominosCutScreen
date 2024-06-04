@@ -291,7 +291,7 @@
                 // ASAP orders taken by staff are expected to be communicated
                 if (first.IsTimedOrder || first.IsElectronic)
                 {
-                    await PlayAlarm("win32.mp3");
+                    await PlayAlarm("win31.mp3");
                     HasPlayedFirstOrderAlarm = true;
                 }
             }
@@ -354,7 +354,7 @@
 
         if (shouldPlay)
         {
-            await PlayAlarm("win32.mp3");
+            await PlayAlarm("win31.mp3");
         }
     }
 
