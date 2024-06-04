@@ -3,6 +3,7 @@
 @using System.Text.Json
 @inject HttpClient Http
 @implements IDisposable
+@inject IJSRuntime JS
 
 <EditForm Model="@Model" OnSubmit="@Submit">
     <div class="form-group">
@@ -109,12 +110,28 @@
         var newBumpHistory = await Http.GetFromJsonAsync<IEnumerable<MakeLineOrderItemHistory>>("api/Makeline/bump");
         if (newBumpHistory != null)
         {
+            var toRemove = new List<Counter>(); // list of counters to remove when the count is equal to target
+
             var newItems = newBumpHistory.Except(BumpHistory, new HistoryComparer());
             foreach (var history in newItems)
             {
                 foreach (var counter in Counters.Where(c => c.Running && c.ProductName.Equals(history.Description, StringComparison.InvariantCultureIgnoreCase) && history.BumpedAtTime > c.From))
                 {
                     ++counter.Current;
+
+                    if (counter.Current >= counter.Target)
+                    {
+                        toRemove.Add(counter);
+                    }
+                }
+            }
+
+            if (toRemove.Count > 0)
+            {
+                await JS.InvokeVoidAsync("playOvenAlert", "Win31.mp3");
+                foreach (var counter in toRemove)
+                {
+                    Counters.Remove(counter);
                 }
             }
 
