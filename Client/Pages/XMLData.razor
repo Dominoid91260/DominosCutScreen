@@ -239,7 +239,7 @@
         await Http.GetAsync("api/Makeline/silence");
     }
 
-    private async Task PlayAlarm(bool ignoreQuietTime = false)
+    private async Task PlayAlarm(string file, bool ignoreQuietTime = false)
     {
         if (Settings.QuietTime.IsEnabled)
         {
@@ -248,7 +248,19 @@
                 return;
         }
 
-        await JS.InvokeVoidAsync("playOvenAlert", Settings.UseShortAlarm);
+        await JS.InvokeVoidAsync("playOvenAlert", file);
+    }
+
+    private async Task PlayOvenAlarm(bool ignoreQuietTime = false)
+    {
+        string file = "alarm.wav";
+
+        if (Settings.UseShortAlarm)
+        {
+            file = "alarm_short.wav";
+        }
+
+        await PlayAlarm(file, ignoreQuietTime);
     }
 
     private async Task FetchBumpHistory()
@@ -279,7 +291,7 @@
                 // ASAP orders taken by staff are expected to be communicated
                 if (first.IsTimedOrder || first.IsElectronic)
                 {
-                    await PlayAlarm();
+                    await PlayAlarm("win32.mp3");
                     HasPlayedFirstOrderAlarm = true;
                 }
             }
@@ -308,7 +320,7 @@
                 )
             {
                 AlertedOrderNumbers.Add(currTime);
-                await PlayAlarm();
+                await PlayOvenAlarm();
             }
         }
     }
@@ -342,8 +354,7 @@
 
         if (shouldPlay)
         {
-            /// @TODO play different alarm
-            await PlayAlarm();
+            await PlayAlarm("win32.mp3");
         }
     }
 
@@ -354,7 +365,7 @@
             if (DateTime.Now >= timer.Created + timer.Duration)
             {
                 timer.Finished = true;
-                await PlayAlarm(true);
+                await PlayOvenAlarm(true);
             }
         }
     }
