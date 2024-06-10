@@ -241,7 +241,7 @@
 
     private async Task PlayAlarm(string file, bool ignoreQuietTime = false)
     {
-        if (Settings.QuietTime.IsEnabled)
+        if (Settings.QuietTime.IsEnabled && !ignoreQuietTime)
         {
             var tod = TimeOnly.FromTimeSpan(DateTime.Now.TimeOfDay);
             if (tod >= Settings.QuietTime.Start && tod < Settings.QuietTime.End)
